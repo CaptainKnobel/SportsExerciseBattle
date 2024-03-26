@@ -15,28 +15,43 @@ namespace SEB
             Console.WriteLine("Program Start ...");
             Console.WriteLine("=*=*=*=[ Sports Exercise Battle Server ]=*=*=*=");
 
-            // Initialize database connection string
-            string connectionString = "my_postgresql_connection_string";
+            try
+            {
+                // Initialize database connection string
+                string connectionString = "my_postgresql_connection_string";
 
-            // Initialize repositories
-            var userRepository = new UserRepository(connectionString);
-            var pushUpRecordRepository = new PushUpRecordRepository(connectionString);
-            var tournamentRepository = new TournamentRepository(connectionString);
+                // Initialize repositories
+                var userRepository = new UserRepository(connectionString);
+                var pushUpRecordRepository = new PushUpRecordRepository(connectionString);
+                var tournamentRepository = new TournamentRepository(connectionString);
 
-            // Initialize services
-            var userService = new UserService(userRepository);
-            var pushUpRecordService = new PushUpRecordService(pushUpRecordRepository);
-            var tournamentService = new TournamentService(tournamentRepository);
+                // Initialize services
+                var userService = new UserService(userRepository);
+                var pushUpRecordService = new PushUpRecordService(pushUpRecordRepository);
+                var tournamentService = new TournamentService(tournamentRepository);
 
-            // Initialize controllers
-            var userController = new UserController(userService);
-            var tournamentController = new TournamentController(tournamentService);
-            var profileController = new ProfileController(userService);
+                // Initialize controllers
+                var userController = new UserController(userService);
+                var tournamentController = new TournamentController(tournamentService);
+                var profileController = new ProfileController(userService);
 
-            // Run the application (userController is master)
-            userController.Run();
-
-            Console.WriteLine("... Program End");
-        }
-    }
-}
+                // Run the application (userController is master)
+                userController.Run();
+            }
+            catch (NpgsqlException ex)
+            {
+                // Handle PostgreSQL exceptions separately
+                Console.WriteLine("A PostgreSQL exception occurred: " + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Generic exception handling for any other unexpected errors
+                Console.WriteLine("An error occurred: " + ex.Message);
+            }
+            finally
+            {
+                Console.WriteLine("... Program End");
+            }
+        } // <- End of Main function
+    } // <- End of Program class
+} // <- End of SEB namesspace
