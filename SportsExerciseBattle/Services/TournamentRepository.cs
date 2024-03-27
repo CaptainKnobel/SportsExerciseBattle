@@ -22,10 +22,17 @@ namespace SEB.Services
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
-                // TODO: Perform SQL insert operation to start a new tournament
+                using (var cmd = new NpgsqlCommand())
+                {
+                    cmd.Connection = connection;
+                    cmd.CommandText = "INSERT INTO Tournaments (StartTime) VALUES (@startTime)";
+                    cmd.Parameters.AddWithValue("startTime", tournament.StartTime);
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
 
         // TODO: what ever other methods I need
-    }
-}
+
+    } // <- End of TournamentRepository class
+} // <- End of SEB.Services namesspace

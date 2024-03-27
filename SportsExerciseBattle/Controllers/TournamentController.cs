@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SEB.Models;
 using SEB.Services;
 
 namespace SEB.Controllers
@@ -18,7 +19,11 @@ namespace SEB.Controllers
 
         public void Run()
         {
-            // TODO: Implement tournament
+            // Create a new tournament instance with the current time as the start time
+            var tournament = new Tournament { StartTime = DateTime.Now };
+
+            // Start the tournament
+            tournamentService.StartTournament(tournament);
         }
     }
 }

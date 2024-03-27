@@ -14,4 +14,3 @@ namespace SEB.Models
         public DateTime? EndTime { get; set; }
     }
 }
-
