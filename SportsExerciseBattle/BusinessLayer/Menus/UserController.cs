@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SEB.Services;
+using SportsExerciseBattle.BusinessLayer;
 
-namespace SEB.Controllers
+namespace SportsExerciseBattle.BusinessLayer.Menus
 {
     public class UserController
     {
@@ -21,15 +21,15 @@ namespace SEB.Controllers
         {
             Console.WriteLine("... Starting Up ...");
             bool isQuit = false;
-            while(!isQuit)
+            while (!isQuit)
             {
-                if(isLoggedIn)
+                if (isLoggedIn)
                 {
                     isQuit = MenuLoggedIn();
                 }
                 else
                 {
-                    isQuit = MenuNotLoggedIn ();
+                    isQuit = MenuNotLoggedIn();
                 }
             }
             Console.WriteLine("... Shutting Down ...");
@@ -45,7 +45,7 @@ namespace SEB.Controllers
 
             string? userInput = Console.ReadLine()?.Trim();
 
-            switch(userInput)
+            switch (userInput)
             {
                 case "1":
                     StartTournament();

@@ -2,11 +2,12 @@
 
 using System;
 using Npgsql;
-using SEB.Controllers;
-using SEB.Models;
-using SEB.Services;
+using SportsExerciseBattle.Models;
+using SportsExerciseBattle.BusinessLayer;
+using SportsExerciseBattle.BusinessLayer.Menus;
+using SportsExerciseBattle.DataAccessLayer;
 
-namespace SEB
+namespace SportsExerciseBattle
 {
     class Program
     {
@@ -54,4 +55,4 @@ namespace SEB
             }
         } // <- End of Main function
     } // <- End of Program class
-} // <- End of SEB namesspace
+} // <- End of SportsExerciseBattle namesspace

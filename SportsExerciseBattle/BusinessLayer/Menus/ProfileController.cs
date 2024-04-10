@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SEB.Services;
+using SportsExerciseBattle.BusinessLayer;
 
-namespace SEB.Controllers
+namespace SportsExerciseBattle.BusinessLayer.Menus
 {
     public class ProfileController
     {

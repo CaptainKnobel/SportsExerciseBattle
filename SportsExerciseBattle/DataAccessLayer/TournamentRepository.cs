@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Npgsql;
-using SEB.Models;
+using SportsExerciseBattle.Models;
 
-namespace SEB.Services
+namespace SportsExerciseBattle.DataAccessLayer
 {
     public class TournamentRepository
     {
@@ -30,9 +30,10 @@ namespace SEB.Services
                     cmd.ExecuteNonQuery();
                 }
             }
+            // TODO: better logic, better sql up there, actual logic, bruh
         }
 
         // TODO: what ever other methods I need
 
     } // <- End of TournamentRepository class
-} // <- End of SEB.Services namesspace
+} // <- End of SportsExerciseBattle.Services namesspace

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Npgsql;
-using SEB.Models;
+using SportsExerciseBattle.Models;
 
-namespace SEB.Services
+namespace SportsExerciseBattle.DataAccessLayer
 {
     public class PushUpRecordRepository
     {

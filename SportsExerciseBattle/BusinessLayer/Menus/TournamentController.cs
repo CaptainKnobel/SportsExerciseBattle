@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SEB.Models;
-using SEB.Services;
+using SportsExerciseBattle.BusinessLayer;
+using SportsExerciseBattle.Models;
 
-namespace SEB.Controllers
+namespace SportsExerciseBattle.BusinessLayer.Menus
 {
     public class TournamentController
     {

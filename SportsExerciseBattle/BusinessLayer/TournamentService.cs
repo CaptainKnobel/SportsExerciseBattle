@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SEB.Models;
-using SEB.Services;
+using SportsExerciseBattle.Models;
+using SportsExerciseBattle.DataAccessLayer;
 
-namespace SEB.Services
+namespace SportsExerciseBattle.BusinessLayer
 {
     public class TournamentService
     {
