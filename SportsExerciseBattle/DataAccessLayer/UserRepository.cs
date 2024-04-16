@@ -22,7 +22,16 @@ namespace SportsExerciseBattle.DataAccessLayer
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
-                // TODO: Perform SQL insert operation to add user to database
+                using (var cmd = new NpgsqlCommand("INSERT INTO Users (Username, Password, Name, Bio, Image, Elo) VALUES (@Username, @Password, @Name, @Bio, @Image, @Elo)", connection))
+                {
+                    cmd.Parameters.AddWithValue("Username", user.Username);
+                    cmd.Parameters.AddWithValue("Password", user.Password); // TODO: hashing the password!
+                    cmd.Parameters.AddWithValue("Name", user.Name);
+                    cmd.Parameters.AddWithValue("Bio", user.Bio ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("Image", user.Image ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("Elo", user.Elo);
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
 
@@ -31,10 +40,29 @@ namespace SportsExerciseBattle.DataAccessLayer
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
-                // TODO: Perform SQL select operation to retrieve user by username from database
-                // TODO: Construct and return a User object
-                return null; // TODO: Placeholder, to be replaced with actual implementation
+                using (var cmd = new NpgsqlCommand("SELECT Username, Password, Name, Bio, Image, Elo FROM Users WHERE Username = @Username", connection))
+                {
+                    cmd.Parameters.AddWithValue("Username", username);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return new User
+                            {
+                                Username = reader.GetString(reader.GetOrdinal("Username")),
+                                Password = reader.GetString(reader.GetOrdinal("Password")), // Password should be hashed and never exposed
+                                Name = reader.GetString(reader.GetOrdinal("Name")),
+                                Bio = reader.IsDBNull(reader.GetOrdinal("Bio")) ? null : reader.GetString(reader.GetOrdinal("Bio")),
+                                Image = reader.IsDBNull(reader.GetOrdinal("Image")) ? null : reader.GetString(reader.GetOrdinal("Image")),
+                                Elo = reader.GetInt32(reader.GetOrdinal("Elo"))
+                            };
+                        }
+                    }
+                }
             }
+
+            return null; // or throw an exception if user not found
         }
 
         // TODO: what ever other methods I need
