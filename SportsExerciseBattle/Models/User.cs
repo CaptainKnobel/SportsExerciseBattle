@@ -9,9 +9,8 @@ namespace SportsExerciseBattle.Models
 {
     public class User
     {
-        [Required] public required string Username { get; set; }
-        [Required] public required string Password { get; set; }
-        [Required] public required string Name { get; set; }
+        public required string Username { get; set; }
+        public required string Name { get; set; }
 
         public string? Bio { get; set; }
 

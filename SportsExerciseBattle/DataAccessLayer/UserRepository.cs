@@ -83,21 +83,21 @@ namespace SportsExerciseBattle.DataAccessLayer
                 return hash == storedHash;
             }
         }
-        public void AddUser(User user)
+        public void AddUser(string username, string password, string name, string bio, string image, int elo)
         {
-            var (hash, salt) = HashPassword(user.Password);
+            var (hash, salt) = HashPassword(password);
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
                 using (var cmd = new NpgsqlCommand("INSERT INTO Users (Username, PasswordHash, PasswordSalt, Name, Bio, Image, Elo) VALUES (@Username, @PasswordHash, @PasswordSalt, @Name, @Bio, @Image, @Elo)", connection))
                 {
-                    cmd.Parameters.AddWithValue("Username", user.Username);
+                    cmd.Parameters.AddWithValue("Username", username);
                     cmd.Parameters.AddWithValue("PasswordHash", hash);
                     cmd.Parameters.AddWithValue("PasswordSalt", salt);
-                    cmd.Parameters.AddWithValue("Name", user.Name);
-                    cmd.Parameters.AddWithValue("Bio", user.Bio ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("Image", user.Image ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("Elo", user.Elo);
+                    cmd.Parameters.AddWithValue("Name", name);
+                    cmd.Parameters.AddWithValue("Bio", bio ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("Image", image ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("Elo", elo);
                     cmd.ExecuteNonQuery();
                 }
             }
