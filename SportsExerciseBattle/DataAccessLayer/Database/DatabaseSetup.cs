@@ -83,5 +83,6 @@ namespace SportsExerciseBattle.DataAccessLayer.Database
                 }
             }
         }
-    }
-}
+
+    } // <- End of DatabaseSetup class
+} // <- End of SportsExerciseBattle.DataAccessLayer.Database namespace
