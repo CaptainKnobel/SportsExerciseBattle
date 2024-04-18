@@ -1,0 +1,30 @@
+docker run --name seb_db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -v pgdata:/var/lib/postgresql/data postgres
+
+docker start seb_db
+docker stop seb_db
+
+docker exec -it seb_db bash
+
+psql -U postgres
+or
+docker exec -it seb_db psql -U postgres -h localhost -d postgres -P
+
+--------------------------------------------------
+psql command reference
+\h … show help about SQL statements
+\? … show help about internal commands
+\q … quit
+\l+ … show databases
+\c DBNAME … connect to database DBNAME
+\dt … show tables
+\du … show users
+--------------------------------------------------
+
+CREATE DATABASE seb_db;
+
+\c seb_db
+
+
+
+\q
+exit

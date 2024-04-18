@@ -15,7 +15,28 @@ namespace SportsExerciseBattle.DataAccessLayer.Database
         {
             _connectionString = connectionString;
         }
-
+        public async Task SetupDatabaseAsync()
+        {
+            await CreateRoleAndGrantPrivileges();
+            await CreateTablesIfNotExistAsync();
+            await InsertInitialData();
+        }
+        private async Task CreateRoleAndGrantPrivileges()
+        {
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                await conn.OpenAsync();
+                var sql = @"
+                DROP ROLE IF EXISTS seb_admin;
+                CREATE ROLE seb_admin WITH LOGIN PASSWORD 'seb_password';
+                GRANT ALL PRIVILEGES ON DATABASE postgres TO seb_admin;
+                ";
+                using (var cmd = new NpgsqlCommand(sql, conn))
+                {
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
         public async Task CreateTablesIfNotExistAsync()
         {
             using (var conn = new NpgsqlConnection(_connectionString))
@@ -84,5 +105,25 @@ namespace SportsExerciseBattle.DataAccessLayer.Database
                 }
             }
         }
+        private async Task InsertInitialData()
+        {
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                await conn.OpenAsync();
+                var sql = @"
+                INSERT INTO history (fk_user_id, exerciseType, count, duration, recordEntry) VALUES (1, 'PushUp', 13, 11, false);
+                INSERT INTO history (fk_user_id, exerciseType, count, duration, recordEntry) VALUES (1, 'PushUp', 33, 11, false);
+                INSERT INTO history (fk_user_id, exerciseType, count, duration, recordEntry) VALUES (1, 'PushUp', 29, 11, false);
+                INSERT INTO history (fk_user_id, exerciseType, count, duration, recordEntry) VALUES (2, 'PushUp', 13, 11, false);
+                INSERT INTO history (fk_user_id, exerciseType, count, duration, recordEntry) VALUES (2, 'PushUp', 33, 11, false);
+                INSERT INTO history (fk_user_id, exerciseType, count, duration, recordEntry) VALUES (2, 'PushUp', 29, 11, false);
+                ";
+                using (var cmd = new NpgsqlCommand(sql, conn))
+                {
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
     } // <- End of DatabaseSetup class
 } // <- End of SportsExerciseBattle.DataAccessLayer.Database namespace

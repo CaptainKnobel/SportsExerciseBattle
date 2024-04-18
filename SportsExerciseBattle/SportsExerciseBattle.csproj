@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="#ProjectSpecification\**" />
+    <EmbeddedResource Remove="#ProjectSpecification\**" />
+    <None Remove="#ProjectSpecification\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Json.Net" Version="1.0.33" />
     <PackageReference Include="Npgsql" Version="8.0.2" />
     <PackageReference Include="NSubstitute" Version="5.1.0" />
