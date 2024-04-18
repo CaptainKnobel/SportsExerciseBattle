@@ -34,5 +34,6 @@ namespace SportsExerciseBattle.Utilities
             var regeneratedToken = GenerateToken(username);
             return regeneratedToken == token;
         }
+
     }
 }

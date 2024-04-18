@@ -62,5 +62,6 @@ namespace SportsExerciseBattle.BusinessLayer
         {
             return await _tournamentRepository.GetTournamentResults(tournamentId);
         }
+
     }
 }
