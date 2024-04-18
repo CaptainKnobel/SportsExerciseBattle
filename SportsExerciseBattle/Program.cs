@@ -21,12 +21,12 @@ namespace SportsExerciseBattle
             try
             {
                 // Initialize database connection string
-                string connectionString = "Host=localhost;Port=5432;Database=seb_db;Username=postgres;Password=postgres;Persist Security Info=True; Include Error Detail=True";
+                string connectionString = "Host=localhost;Port=5432;Database=seb_db;Username=seb_admin;Password=seb_password;Persist Security Info=True; Include Error Detail=True";
 
                 // Setup Database
                 var dbSetup = new DatabaseSetup(connectionString);
                 await dbSetup.CreateTablesIfNotExistAsync();
-                Console.WriteLine("Database setup complete. Application starting...");
+                Console.WriteLine("Database setup complete.");
 
                 // Initialize repositories
                 var userRepository = new UserRepository(connectionString);

@@ -29,7 +29,7 @@ namespace SportsExerciseBattle.DataAccessLayer.Database
                 var sql = @"
                 DROP ROLE IF EXISTS seb_admin;
                 CREATE ROLE seb_admin WITH LOGIN PASSWORD 'seb_password';
-                GRANT ALL PRIVILEGES ON DATABASE postgres TO seb_admin;
+                GRANT ALL PRIVILEGES ON DATABASE seb_db TO seb_admin;
                 ";
                 using (var cmd = new NpgsqlCommand(sql, conn))
                 {
