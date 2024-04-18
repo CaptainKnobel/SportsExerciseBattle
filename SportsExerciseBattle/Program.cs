@@ -21,7 +21,7 @@ namespace SportsExerciseBattle
             try
             {
                 // Initialize database connection string
-                string connectionString = "Host=localhost;Database=mydb;Username=postgres;Password=postgres;Persist Security Info=True; Include Error Detail=True";
+                string connectionString = "Host=localhost;Port=5432;Database=seb_db;Username=postgres;Password=postgres;Persist Security Info=True; Include Error Detail=True";
 
                 // Setup Database
                 var dbSetup = new DatabaseSetup(connectionString);
@@ -70,4 +70,6 @@ namespace SportsExerciseBattle
 } // <- End of SportsExerciseBattle namesspace
 
 
-// docker run --name SEB_db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -v pgdata:/var/lib/postgresql/data postgres
+/*
+docker run --name SEB_db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -v pgdata:/var/lib/postgresql/data postgres
+*/

@@ -10,13 +10,13 @@ namespace SportsExerciseBattle.DataAccessLayer.Database
     public class DatabaseSetup
     {
         private readonly string _connectionString;
-        private readonly string _defaultConnectionString = "Host=localhost;Username=postgres;Password=postgres;Database=postgres";
+        //private readonly string _defaultConnectionString = "Host=localhost;Username=postgres;Password=postgres;Database=postgres";
 
         public DatabaseSetup(string connectionString)
         {
             _connectionString = connectionString;
         }
-
+        /*
         // Setup Everything
         public async Task SetupDatabaseAsync()
         {
@@ -41,7 +41,7 @@ namespace SportsExerciseBattle.DataAccessLayer.Database
                 }
             }
         }
-
+        */
         // Setup the Tables
         public async Task CreateTablesIfNotExistAsync()
         {
