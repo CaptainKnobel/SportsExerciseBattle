@@ -10,38 +10,11 @@ namespace SportsExerciseBattle.DataAccessLayer.Database
     public class DatabaseSetup
     {
         private readonly string _connectionString;
-        //private readonly string _defaultConnectionString = "Host=localhost;Username=postgres;Password=postgres;Database=postgres";
-
+        
         public DatabaseSetup(string connectionString)
         {
             _connectionString = connectionString;
         }
-        /*
-        // Setup Everything
-        public async Task SetupDatabaseAsync()
-        {
-            await CreateDatabaseIfNotExistsAsync();
-            await CreateTablesIfNotExistAsync();
-        }
-
-        // Setup the Database
-        private async Task CreateDatabaseIfNotExistsAsync()
-        {
-            var dbName = new NpgsqlConnectionStringBuilder(_connectionString).Database;
-            using (var conn = new NpgsqlConnection(_defaultConnectionString))
-            {
-                await conn.OpenAsync();
-                // Check if database exists
-                var checkDbExistsCommand = new NpgsqlCommand($"SELECT 1 FROM pg_database WHERE datname = '{dbName}'", conn);
-                if ((await checkDbExistsCommand.ExecuteScalarAsync()) == null)
-                {
-                    // Create database if it doesn't exist
-                    var createDbCommand = new NpgsqlCommand($"CREATE DATABASE \"{dbName}\"", conn);
-                    await createDbCommand.ExecuteNonQueryAsync();
-                }
-            }
-        }
-        */
         // Setup the Tables
         public async Task CreateTablesIfNotExistAsync()
         {
@@ -83,6 +56,35 @@ namespace SportsExerciseBattle.DataAccessLayer.Database
                 }
             }
         }
+
+        // --- Crazy corner ---
+        //private readonly string _defaultConnectionString = "Host=localhost;Username=postgres;Password=postgres;Database=postgres";
+        /*
+        // Setup Everything
+        public async Task SetupDatabaseAsync()
+        {
+            await CreateDatabaseIfNotExistsAsync();
+            await CreateTablesIfNotExistAsync();
+        }
+
+        // Setup the Database
+        private async Task CreateDatabaseIfNotExistsAsync()
+        {
+            var dbName = new NpgsqlConnectionStringBuilder(_connectionString).Database;
+            using (var conn = new NpgsqlConnection(_defaultConnectionString))
+            {
+                await conn.OpenAsync();
+                // Check if database exists
+                var checkDbExistsCommand = new NpgsqlCommand($"SELECT 1 FROM pg_database WHERE datname = '{dbName}'", conn);
+                if ((await checkDbExistsCommand.ExecuteScalarAsync()) == null)
+                {
+                    // Create database if it doesn't exist
+                    var createDbCommand = new NpgsqlCommand($"CREATE DATABASE \"{dbName}\"", conn);
+                    await createDbCommand.ExecuteNonQueryAsync();
+                }
+            }
+        }
+        */
 
     } // <- End of DatabaseSetup class
 } // <- End of SportsExerciseBattle.DataAccessLayer.Database namespace
