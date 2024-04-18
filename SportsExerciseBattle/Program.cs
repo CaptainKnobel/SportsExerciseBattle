@@ -5,6 +5,7 @@ using Npgsql;
 using SportsExerciseBattle.Models;
 using SportsExerciseBattle.BusinessLayer;
 using SportsExerciseBattle.DataAccessLayer;
+using SportsExerciseBattle.DataAccessLayer.Database;
 using SportsExerciseBattle.Web.HTTP;
 using SportsExerciseBattle.Web.Controllers;
 
@@ -12,7 +13,7 @@ namespace SportsExerciseBattle
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Console.WriteLine("Program Start ...");
             Console.WriteLine("=*=*=*=[ Sports Exercise Battle Server ]=*=*=*=");
@@ -21,6 +22,11 @@ namespace SportsExerciseBattle
             {
                 // Initialize database connection string
                 string connectionString = "Host=localhost;Database=mydb;Username=postgres;Password=postgres;Persist Security Info=True; Include Error Detail=True";
+
+                // Setup Database
+                var dbSetup = new DatabaseSetup(connectionString);
+                await dbSetup.CreateTablesIfNotExistAsync();
+                Console.WriteLine("Database setup complete. Application starting...");
 
                 // Initialize repositories
                 var userRepository = new UserRepository(connectionString);
