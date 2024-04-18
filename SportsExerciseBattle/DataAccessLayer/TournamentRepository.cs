@@ -133,5 +133,6 @@ namespace SportsExerciseBattle.DataAccessLayer
                 }
             }
         }
+
     } // <- End of TournamentRepository class
 } // <- End of SportsExerciseBattle.Services namesspace

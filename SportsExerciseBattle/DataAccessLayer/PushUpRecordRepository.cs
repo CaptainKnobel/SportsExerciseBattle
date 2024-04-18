@@ -37,6 +37,5 @@ namespace SportsExerciseBattle.DataAccessLayer
             }
         }
 
-        // TODO: what ever other methods I need
     }
 }
