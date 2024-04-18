@@ -101,7 +101,7 @@ namespace SportsExerciseBattle.DataAccessLayer
             }
         }
 
-        public async Task<User> GetUserByUsername(string username)
+        public async Task<User?> GetUserByUsername(string username)
         {
             using (var connection = new NpgsqlConnection(connectionString))
             {
@@ -130,6 +130,7 @@ namespace SportsExerciseBattle.DataAccessLayer
 
         public async Task<UserStats> GetUserStats(string username)
         {
+            await Task.Delay(1); // Simulate asynchronous work
             // Implement fetching stats for a single user
             // Placeholder for actual database interaction
             return new UserStats { Username = username, TotalPushUps = 150, Elo = 1200 };
@@ -137,6 +138,7 @@ namespace SportsExerciseBattle.DataAccessLayer
 
         public async Task<List<ScoreboardEntry>> GetScoreboardData()
         {
+            await Task.Delay(1); // Simulate asynchronous work
             // Implement fetching data for the scoreboard
             // Placeholder for actual database interaction
             return new List<ScoreboardEntry> {

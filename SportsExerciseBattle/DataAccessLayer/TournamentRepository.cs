@@ -63,7 +63,7 @@ namespace SportsExerciseBattle.DataAccessLayer
             }
         }
 
-        public async Task<string> GetTournamentResults(int tournamentId)
+        public async Task<string?> GetTournamentResults(int tournamentId)
         {
             // Logic to fetch tournament results
             const string query = @"

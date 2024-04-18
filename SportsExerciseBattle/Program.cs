@@ -47,7 +47,9 @@ namespace SportsExerciseBattle
                 
                 // Router setup
                 var router = new Router(userController, tournamentController, pushUpRecordController, statsController);
-                HttpServer.StartServer(10001, router);
+
+                // Start the HTTP server
+                await HttpServer.StartServer(10001, router);
 
                 Console.WriteLine("Server is running...");
             }
