@@ -10,7 +10,7 @@ using SportsExerciseBattle.Models;
 
 namespace SportsExerciseBattle.DataAccessLayer
 {
-    public class TournamentRepository
+    public class TournamentRepository : ITournamentRepository
     {
         private readonly string _connectionString;
 

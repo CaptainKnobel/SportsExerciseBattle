@@ -4,7 +4,6 @@ using System;
 using Npgsql;
 using SportsExerciseBattle.Models;
 using SportsExerciseBattle.BusinessLayer;
-using SportsExerciseBattle.BusinessLayer.Menus;
 using SportsExerciseBattle.DataAccessLayer;
 using SportsExerciseBattle.Web.HTTP;
 using SportsExerciseBattle.Web.Controllers;
