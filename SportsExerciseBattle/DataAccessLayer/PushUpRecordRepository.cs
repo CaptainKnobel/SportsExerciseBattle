@@ -10,19 +10,30 @@ namespace SportsExerciseBattle.DataAccessLayer
 {
     public class PushUpRecordRepository
     {
-        private readonly string connectionString;
+        private readonly string _connectionString;
 
         public PushUpRecordRepository(string connectionString)
         {
-            this.connectionString = connectionString;
+            _connectionString = connectionString;
         }
 
-        public void AddPushUpRecord(PushUpRecord record)
+        public async Task AddPushUpRecord(string username, int count, TimeSpan duration)
         {
-            using (var connection = new NpgsqlConnection(connectionString))
+            const string query = @"
+                INSERT INTO PushUpRecords (Username, Count, Duration)
+                VALUES (@username, @count, @duration);";
+
+            using (var conn = new NpgsqlConnection(_connectionString))
             {
-                connection.Open();
-                // TODO: Perform SQL insert operation to add push-up record to database
+                await conn.OpenAsync();
+                using (var cmd = new NpgsqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@username", username);
+                    cmd.Parameters.AddWithValue("@count", count);
+                    cmd.Parameters.AddWithValue("@duration", duration.TotalSeconds);
+
+                    await cmd.ExecuteNonQueryAsync();
+                }
             }
         }
 

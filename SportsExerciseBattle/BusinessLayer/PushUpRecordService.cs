@@ -10,20 +10,22 @@ namespace SportsExerciseBattle.BusinessLayer
 {
     public class PushUpRecordService
     {
-        private readonly PushUpRecordRepository pushUpRecordRepository;
+        private readonly PushUpRecordRepository _pushUpRecordRepository;
 
         public PushUpRecordService(PushUpRecordRepository pushUpRecordRepository)
         {
-            this.pushUpRecordRepository = pushUpRecordRepository;
+            _pushUpRecordRepository = pushUpRecordRepository;
         }
 
-        public void AddPushUpRecord(PushUpRecord record)
+        public async Task<bool> AddPushUpRecord(string username, int count, TimeSpan duration)
         {
-            // TODO: Perform additional validation or business logic as needed
-            pushUpRecordRepository.AddPushUpRecord(record);
+            if (string.IsNullOrWhiteSpace(username) || count <= 0 || duration <= TimeSpan.Zero)
+            {
+                return false; // Ensure valid input parameters
+            }
+            await _pushUpRecordRepository.AddPushUpRecord(username, count, duration);
+            return true;
         }
-
-        // what ever other methods for retrieving push-up records, calculating statistics, etc.
     }
 }
 

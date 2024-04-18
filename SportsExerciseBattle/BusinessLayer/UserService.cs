@@ -10,29 +10,36 @@ namespace SportsExerciseBattle.BusinessLayer
 {
     public class UserService
     {
-        private readonly UserRepository userRepository;
+        private readonly IUserRepository _userRepository;
 
-        public UserService(UserRepository userRepository)
+        public UserService(IUserRepository userRepository)
         {
-            this.userRepository = userRepository;
+            _userRepository = userRepository;
         }
 
-        public void RegisterUser(User user)
+        public async Task RegisterUser(string username, string password, string name, string bio, string image, int elo)
         {
-            // TODO:
-            // Validate user data (e.g., check if username is available, syntactic requirements, etc.)
-            // Hash the user's password before storing it in the database (because d'uh)
-            // What ever else that comes to my mind
-            userRepository.AddUser(user);
+            // Create a User object from the provided data
+            User newUser = new User
+            {
+                Username = username,
+                Name = name,
+                Bio = bio,
+                Image = image,
+                Elo = elo
+            };
+
+            // Call AddUser with the new User object
+            await _userRepository.AddUser(username, password, name, bio, image, elo);
         }
 
-        public User Login(string username, string password)
+        public async Task<User> Login(string username, string password)
         {
-            // TODO:
-            // Validate credentials
-            // Retrieve user from database and return
-            // Blackmail client and extort them for all their money if credentials are wrong
-            return userRepository.GetUserByUsername(username);
+            if (await _userRepository.VerifyPassword(username, password))
+            {
+                return await _userRepository.GetUserByUsername(username);
+            }
+            throw new Exception("Invalid credentials");
         }
         public void UpdateUser(User user)
         {

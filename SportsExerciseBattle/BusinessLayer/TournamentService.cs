@@ -10,19 +10,23 @@ namespace SportsExerciseBattle.BusinessLayer
 {
     public class TournamentService
     {
-        private readonly TournamentRepository tournamentRepository;
+        private readonly TournamentRepository _tournamentRepository;
 
         public TournamentService(TournamentRepository tournamentRepository)
         {
-            this.tournamentRepository = tournamentRepository;
+            _tournamentRepository = tournamentRepository;
         }
 
-        public void StartTournament(Tournament tournament)
+        public async Task<bool> StartAndResolveTournament(string initiatorUsername, List<string> participants)
         {
-            // TODO: Perform additional logic before starting the tournament
-            tournamentRepository.StartTournament(tournament);
-        }
+            if (string.IsNullOrWhiteSpace(initiatorUsername) || participants == null || participants.Count == 0)
+            {
+                return false; // Early exit if initiator or participants are not properly defined
+            }
 
-        // what ever other methods for managing tournaments, retrieving tournament data, etc.
+            var winnerUsername = participants.OrderByDescending(u => u.Length).FirstOrDefault() ?? throw new InvalidOperationException("No participants provided.");
+            var result = await _tournamentRepository.RecordTournamentOutcome(winnerUsername, participants);
+            return result > 0;
+        }
     }
 }

@@ -6,6 +6,8 @@ using SportsExerciseBattle.Models;
 using SportsExerciseBattle.BusinessLayer;
 using SportsExerciseBattle.BusinessLayer.Menus;
 using SportsExerciseBattle.DataAccessLayer;
+using SportsExerciseBattle.Web.HTTP;
+using SportsExerciseBattle.Web.Controllers;
 
 namespace SportsExerciseBattle
 {
@@ -28,16 +30,21 @@ namespace SportsExerciseBattle
 
                 // Initialize services
                 var userService = new UserService(userRepository);
-                var pushUpRecordService = new PushUpRecordService(pushUpRecordRepository);
                 var tournamentService = new TournamentService(tournamentRepository);
+                var pushUpRecordService = new PushUpRecordService(pushUpRecordRepository);
+                var statsService = new StatsService(userRepository);
 
                 // Initialize controllers
                 var userController = new UserController(userService);
                 var tournamentController = new TournamentController(tournamentService);
-                var profileController = new ProfileController(userService);
+                var pushUpRecordController = new PushUpRecordController(pushUpRecordService);
+                var statsController = new StatsController(statsService);
+                
+                // Router setup
+                var router = new Router(userController, tournamentController, pushUpRecordController, statsController);
+                HttpServer.StartServer(10001, router);
 
-                // Run the application (userController is master)
-                userController.Run();
+                Console.WriteLine("Server is running...");
             }
             catch (NpgsqlException ex)
             {

@@ -6,10 +6,11 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Npgsql;
 using SportsExerciseBattle.Models;
+using SportsExerciseBattle.DataAccessLayer;
 
 namespace SportsExerciseBattle.DataAccessLayer
 {
-    public class UserRepository
+    public class UserRepository : IUserRepository
     {
         private readonly string connectionString;
 
@@ -41,20 +42,19 @@ namespace SportsExerciseBattle.DataAccessLayer
                 return (hash, salt);
             }
         }
-        public bool VerifyPassword(string username, string password)
+        public async Task<bool> VerifyPassword(string username, string password)
         {
-            // Retrieve the stored hash and salt for the user
             string storedHash;
             string storedSalt;
             using (var connection = new NpgsqlConnection(connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
                 using (var cmd = new NpgsqlCommand("SELECT PasswordHash, PasswordSalt FROM Users WHERE Username = @Username", connection))
                 {
                     cmd.Parameters.AddWithValue("Username", username);
-                    using (var reader = cmd.ExecuteReader())
+                    using (var reader = await cmd.ExecuteReaderAsync())
                     {
-                        if (reader.Read())
+                        if (await reader.ReadAsync())
                         {
                             storedHash = reader.GetString(reader.GetOrdinal("PasswordHash"));
                             storedSalt = reader.GetString(reader.GetOrdinal("PasswordSalt"));
@@ -67,7 +67,7 @@ namespace SportsExerciseBattle.DataAccessLayer
                 }
             }
 
-            // Hash the provided password with the stored salt
+            // Proceed to hash the provided password and compare
             var saltBytes = Convert.FromBase64String(storedSalt);
             var passwordBytes = Encoding.UTF8.GetBytes(password);
             var combinedBytes = new byte[saltBytes.Length + passwordBytes.Length];
@@ -78,17 +78,15 @@ namespace SportsExerciseBattle.DataAccessLayer
             {
                 var hashBytes = sha256.ComputeHash(combinedBytes);
                 string hash = Convert.ToBase64String(hashBytes);
-
-                // Verify the password
                 return hash == storedHash;
             }
         }
-        public void AddUser(string username, string password, string name, string bio, string image, int elo)
+        public async Task AddUser(string username, string password, string name, string bio, string image, int elo)
         {
             var (hash, salt) = HashPassword(password);
             using (var connection = new NpgsqlConnection(connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
                 using (var cmd = new NpgsqlCommand("INSERT INTO Users (Username, PasswordHash, PasswordSalt, Name, Bio, Image, Elo) VALUES (@Username, @PasswordHash, @PasswordSalt, @Name, @Bio, @Image, @Elo)", connection))
                 {
                     cmd.Parameters.AddWithValue("Username", username);
@@ -98,28 +96,26 @@ namespace SportsExerciseBattle.DataAccessLayer
                     cmd.Parameters.AddWithValue("Bio", bio ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("Image", image ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("Elo", elo);
-                    cmd.ExecuteNonQuery();
+                    await cmd.ExecuteNonQueryAsync();
                 }
             }
         }
 
-        public User GetUserByUsername(string username)
+        public async Task<User> GetUserByUsername(string username)
         {
             using (var connection = new NpgsqlConnection(connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
                 using (var cmd = new NpgsqlCommand("SELECT Username, Name, Bio, Image, Elo FROM Users WHERE Username = @Username", connection))
                 {
                     cmd.Parameters.AddWithValue("Username", username);
-
-                    using (var reader = cmd.ExecuteReader())
+                    using (var reader = await cmd.ExecuteReaderAsync())
                     {
-                        if (reader.Read())
+                        if (await reader.ReadAsync())
                         {
                             return new User
                             {
                                 Username = reader.GetString(reader.GetOrdinal("Username")),
-                                // No Password
                                 Name = reader.GetString(reader.GetOrdinal("Name")),
                                 Bio = reader.IsDBNull(reader.GetOrdinal("Bio")) ? null : reader.GetString(reader.GetOrdinal("Bio")),
                                 Image = reader.IsDBNull(reader.GetOrdinal("Image")) ? null : reader.GetString(reader.GetOrdinal("Image")),
@@ -129,10 +125,23 @@ namespace SportsExerciseBattle.DataAccessLayer
                     }
                 }
             }
-
-            return null; // or throw an exception if user not found
+            return null;
         }
 
-        // TODO: what ever other methods I need
+        public async Task<UserStats> GetUserStats(string username)
+        {
+            // Implement fetching stats for a single user
+            // Placeholder for actual database interaction
+            return new UserStats { Username = username, TotalPushUps = 150, Elo = 1200 };
+        }
+
+        public async Task<List<ScoreboardEntry>> GetScoreboardData()
+        {
+            // Implement fetching data for the scoreboard
+            // Placeholder for actual database interaction
+            return new List<ScoreboardEntry> {
+                new ScoreboardEntry { Username = "JohnDoe", TotalPushUps = 150, Elo = 1200 }
+            };
+        }
     }
 }
