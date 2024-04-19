@@ -8,66 +8,43 @@ using System.Threading.Tasks;
 using SportsExerciseBattle.BusinessLayer;
 using SportsExerciseBattle.DataAccessLayer;
 using SportsExerciseBattle.Utilities;
+using SportsExerciseBattle.Web.Endpoints;
 
 namespace SportsExerciseBattle.Web.HTTP
 {
     public class HttpServer
     {
-        public static async Task StartServer(int port, Router router)
-        {
-            TcpListener listener = new TcpListener(IPAddress.Loopback, port);
-            listener.Start();
-            //Console.WriteLine("HTTP Server started on port " + port);
-            Console.WriteLine($"HTTP Server started on port {port}");
+        private readonly int port = 8000;
+        private readonly IPAddress ip = IPAddress.Loopback;
 
-            try
+        private TcpListener tcpListener;
+        public Dictionary<string, IHttpEndpoint> Endpoints { get; private set; } = new Dictionary<string, IHttpEndpoint>();
+
+
+        public HttpServer(IPAddress ip, int port)
+        {
+            this.port = port;
+            this.ip = ip;
+
+            tcpListener = new TcpListener(ip, port);
+        }
+
+        public void Run()
+        {
+            tcpListener.Start();
+            while (true)
             {
-                while (true)
-                {
-                    TcpClient client = await listener.AcceptTcpClientAsync();
-                    _ = HandleClient(client, router);
-                }
-            }
-            finally
-            {
-                listener.Stop();
-                Console.WriteLine("HTTP Server stopped.");
+                // ----- 0. Accept the TCP-Client and create the reader and writer -----
+                var clientSocket = tcpListener.AcceptTcpClient();
+                var httpProcessor = new HttpProcessor(this, clientSocket);
+                // Use ThreadPool to make it multi-threaded
+                ThreadPool.QueueUserWorkItem(o => httpProcessor.Process());
             }
         }
 
-        private static async Task HandleClient(TcpClient client, Router router)
+        public void RegisterEndpoint(string path, IHttpEndpoint endpoint)
         {
-            using (var networkStream = client.GetStream())
-            using (var reader = new StreamReader(networkStream))
-            using (var writer = new StreamWriter(networkStream) { AutoFlush = true })
-            {
-                string? requestLine = await reader.ReadLineAsync();
-                if (requestLine == null)
-                { 
-                    return;
-                }
-
-                var requestParts = requestLine.Split(' ');
-                var method = requestParts[0];
-                var url = requestParts[1];
-                var headers = new StringBuilder();
-                string? line;
-                while ((line = await reader.ReadLineAsync()) != null && line != string.Empty)
-                {
-                    headers.Append(line + "\n");
-                }
-
-                var bodyBuilder = new StringBuilder();
-                while (reader.Peek() != -1)
-                {
-                    bodyBuilder.Append((char)reader.Read());
-                }
-                var body = bodyBuilder.ToString();
-
-                await router.RouteRequest(writer, method, url, body);
-                client.Close();
-            }
+            Endpoints.Add(path, endpoint);
         }
-
     }
 }

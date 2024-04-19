@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace SportsExerciseBattle.Models
 {
-    public class UserStats
+    public class LoginRequest
     {
         public string Username { get; set; } = string.Empty;
-        public int TotalPushUps { get; set; } = 0;
-        public int Elo { get; set; } = 0;
+        public string Password { get; set; } = string.Empty;
     }
 }

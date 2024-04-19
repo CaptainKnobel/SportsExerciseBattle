@@ -14,9 +14,9 @@ namespace SportsExerciseBattle.DataAccessLayer
     {
         private readonly string _connectionString;
 
-        public TournamentRepository(string connectionString)
+        public TournamentRepository()
         {
-            _connectionString = connectionString;
+            _connectionString = RepositoryConnection.connectionString;
         }
 
         public async Task<bool> StartUserTournament(string username, string tournamentData)

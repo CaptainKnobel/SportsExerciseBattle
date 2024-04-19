@@ -11,11 +11,11 @@ namespace SportsExerciseBattle.Models
     {
         public required string Username { get; set; }
         public required string Name { get; set; }
-
-        public string? Bio { get; set; }
+        public string Password { get; set; }
+        public string? Bio { get; set; } = string.Empty;
 
         public string? Image { get; set; }
 
-        public int Elo { get; set; }
+        public int Elo { get; set; } = 0;
     }
 }

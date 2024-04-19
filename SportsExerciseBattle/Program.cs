@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System;
+using System.Net;
 using Npgsql;
 using SportsExerciseBattle.Models;
 using SportsExerciseBattle.BusinessLayer;
@@ -8,6 +9,7 @@ using SportsExerciseBattle.DataAccessLayer;
 using SportsExerciseBattle.DataAccessLayer.Database;
 using SportsExerciseBattle.Web.HTTP;
 using SportsExerciseBattle.Web.Controllers;
+using SportsExerciseBattle.Web.Endpoints;
 
 namespace SportsExerciseBattle
 {
@@ -21,13 +23,13 @@ namespace SportsExerciseBattle
             try
             {
                 // Initialize database connection string
-                string connectionString = "Host=localhost;Port=5432;Database=seb_db;Username=seb_admin;Password=seb_password;Persist Security Info=True; Include Error Detail=True";
+                //string connectionString = "Host=localhost;Port=5432;Database=seb_db;Username=seb_admin;Password=seb_password;Persist Security Info=True; Include Error Detail=True";
 
                 // Setup Database
-                var dbSetup = new DatabaseSetup(connectionString);
+                var dbSetup = new DatabaseSetup(RepositoryConnection.connectionString);
                 await dbSetup.CreateTablesIfNotExistAsync();
                 Console.WriteLine("Database setup complete.");
-
+                /*
                 // Initialize repositories
                 var userRepository = new UserRepository(connectionString);
                 var pushUpRecordRepository = new PushUpRecordRepository(connectionString);
@@ -35,7 +37,7 @@ namespace SportsExerciseBattle
 
                 // Initialize services
                 var userService = new UserService(userRepository);
-                var tournamentService = new TournamentService(tournamentRepository);
+                var tournamentService = new TournamentService(tournamentRepository, userRepository);
                 var pushUpRecordService = new PushUpRecordService(pushUpRecordRepository);
                 var statsService = new StatsService(userRepository);
 
@@ -50,8 +52,25 @@ namespace SportsExerciseBattle
 
                 // Start the HTTP server
                 await HttpServer.StartServer(10001, router);
-
                 Console.WriteLine("Server is running...");
+                */
+
+
+                // ===== I. Start the HTTP-Server =====
+                HttpServer httpServer = new HttpServer(IPAddress.Any, 10001);
+
+                // register endpoints
+                httpServer.RegisterEndpoint("users", new UsersEndpoint());
+                httpServer.RegisterEndpoint("sessions", new SessionsEndpoint());
+                httpServer.RegisterEndpoint("stats", new StatsEndpoint());
+                httpServer.RegisterEndpoint("score", new ScoresEndpoint());
+                httpServer.RegisterEndpoint("history", new HistoryEndpoint());
+                httpServer.RegisterEndpoint("tournament", new TournamentEndpoint());
+                httpServer.RegisterEndpoint("tournamentHistory", new TournamentHistoryEndpoint());
+
+                httpServer.Run();
+
+
             }
             catch (NpgsqlException ex)
             {

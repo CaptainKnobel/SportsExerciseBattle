@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Npgsql;
 using SportsExerciseBattle.Models;
 using SportsExerciseBattle.DataAccessLayer;
+using SportsExerciseBattle.Web.HTTP;
 
 namespace SportsExerciseBattle.DataAccessLayer
 {
@@ -14,9 +15,9 @@ namespace SportsExerciseBattle.DataAccessLayer
     {
         private readonly string _connectionString;
 
-        public UserRepository(string connectionString)
+        public UserRepository()
         {
-            _connectionString = connectionString;
+            _connectionString = RepositoryConnection.connectionString;
         }
 
         private (string Hash, string Salt) HashPassword(string password)
@@ -176,5 +177,33 @@ namespace SportsExerciseBattle.DataAccessLayer
             }
             return scoreboardEntries;
         }
+        public async Task UpdateUser(string username, User updatedUser)
+        {
+            using (var connection = new NpgsqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                var cmd = new NpgsqlCommand(@"
+            UPDATE users
+            SET
+                name = @Name,
+                bio = @Bio,
+                image = @Image,
+                elo = @Elo
+            WHERE username = @Username", connection);
+
+                cmd.Parameters.AddWithValue("Username", username);
+                cmd.Parameters.AddWithValue("Name", updatedUser.Name);
+                cmd.Parameters.AddWithValue("Bio", updatedUser.Bio ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("Image", updatedUser.Image ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("Elo", updatedUser.Elo);
+
+                int affectedRows = await cmd.ExecuteNonQueryAsync();
+                if (affectedRows == 0)
+                {
+                    throw new Exception("No user found with the specified username.");
+                }
+            }
+        }
+
     }
 }

@@ -12,9 +12,9 @@ namespace SportsExerciseBattle.DataAccessLayer
     {
         private readonly string _connectionString;
 
-        public PushUpRecordRepository(string connectionString)
+        public PushUpRecordRepository()
         {
-            _connectionString = connectionString;
+            _connectionString = RepositoryConnection.connectionString;
         }
 
         public async Task AddPushUpRecord(string username, int count, TimeSpan duration)
