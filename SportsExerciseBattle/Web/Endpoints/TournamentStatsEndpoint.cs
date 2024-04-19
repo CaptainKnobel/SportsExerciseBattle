@@ -1,45 +1,45 @@
-﻿using System;
+﻿using SportsExerciseBattle.Services;
+using SportsExerciseBattle.Web.HTTP;
+using SportsExerciseBattle.DataAccessLayer;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using SportsExerciseBattle.DataAccessLayer;
-using SportsExerciseBattle.Services;
-using SportsExerciseBattle.Web.HTTP;
 using HttpMethod = SportsExerciseBattle.Web.HTTP.HttpMethod; // makes sure the correct HttpMethod is used
 
 namespace SportsExerciseBattle.Web.Endpoints
 {
-    public class ScoresEndpoint : IHttpEndpoint
+    public class TournamentStatsEndpoint : IHttpEndpoint
     {
-        private ScoresDAO scoresDAO = new ScoresDAO();
+        private TournamentStatsDAO tournamentStatsDAO = new TournamentStatsDAO();
 
         public bool HandleRequest(HttpRequest rq, HttpResponse rs)
         {
             if (rq.Method == HttpMethod.GET)
             {
-                return GetScores(rq, rs);
+                return GetTournamentStats(rq, rs);
             }
             return false;
         }
 
-        private bool GetScores(HttpRequest rq, HttpResponse rs)
+        private bool GetTournamentStats(HttpRequest rq, HttpResponse rs)
         {
             if (!TryAuthorize(rq, rs, out string username))
                 return false;
 
             try
             {
-                var scores = scoresDAO.GetScores();
-                if (scores == null || scores.Count == 0)
+                var stats = tournamentStatsDAO.GetTournamentStats(username);
+                if (stats == null)
                 {
                     rs.ResponseCode = 404;
-                    rs.Content = "Scores not found";
+                    rs.Content = "Tournament stats not found.";
                     return false;
                 }
 
-                rs.Content = JsonSerializer.Serialize(scores);
+                rs.Content = JsonSerializer.Serialize(stats);
                 rs.SetJsonContentType();
                 rs.ResponseCode = 200;
                 return true;

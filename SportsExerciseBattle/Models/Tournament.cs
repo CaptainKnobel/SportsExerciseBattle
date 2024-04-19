@@ -9,8 +9,14 @@ namespace SportsExerciseBattle.Models
 {
     public class Tournament
     {
-        public int TournamentId { get; set; }
-        public DateTime StartTime { get; set; }
-        public DateTime? EndTime { get; set; }
+        private static readonly Lazy<Tournament> LazyInstance = new Lazy<Tournament>(() => new Tournament());
+
+        private Tournament() { }
+        public static Tournament Instance => LazyInstance.Value;
+        public bool IsRunning { get; set; } = false;
+        public List<string> Participants { get; set; } = new List<string>();
+        public List<string> LeadingUsers { get; set; } = new List<string>();
+        public DateTime StartTime { get; set; } = DateTime.MinValue;
+        public List<string> Log { get; set; } = new List<string>();
     }
 }

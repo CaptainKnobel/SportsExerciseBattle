@@ -1,123 +1,136 @@
-﻿using System;
+﻿using SportsExerciseBattle.Models;
+using SportsExerciseBattle.Services;
+using SportsExerciseBattle.Web.HTTP;
+using SportsExerciseBattle.DataAccessLayer;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using HttpMethod = SportsExerciseBattle.Web.HTTP.HttpMethod; // makes sure the correct HttpMethod is used
-using SportsExerciseBattle.Models;
-using SportsExerciseBattle.DataAccessLayer;
-using SportsExerciseBattle.Web.HTTP;
 
 namespace SportsExerciseBattle.Web.Endpoints
 {
     public class UsersEndpoint : IHttpEndpoint
     {
-        private readonly UserRepository userRepository = new UserRepository();
+        private UserDAO userDAO = new UserDAO();
 
-        public UsersEndpoint()
+        public bool HandleRequest(HttpRequest rq, HttpResponse rs)
         {
+            switch (rq.Method)
+            {
+                case HttpMethod.POST:
+                    return CreateUser(rq, rs);
+                case HttpMethod.GET:
+                    return GetUserData(rq, rs);
+                case HttpMethod.PUT:
+                    return UpdateUser(rq, rs);
+                default:
+                    return false;
+            }
         }
 
-        public bool HandleRequest(HttpRequest request, HttpResponse response)
+        private bool CreateUser(HttpRequest rq, HttpResponse rs)
         {
             try
             {
-                switch (request.Method)
+                var user = JsonSerializer.Deserialize<User>(rq.Content ?? "{}");
+                if (user == null)
                 {
-                    case HttpMethod.POST:
-                        return HandlePost(request, response).Result;
-                    case HttpMethod.GET:
-                        return HandleGet(request, response).Result;
-                    case HttpMethod.PUT:
-                        return HandlePut(request, response).Result;
-                    default:
-                        response.ResponseCode = 405;  // Method Not Allowed
-                        return false;
+                    rs.ResponseCode = 400;
+                    rs.Content = "Invalid user data provided.";
+                    return false;
                 }
+
+                userDAO.CreateUser(rq, rs, user); // Pass HttpRequest and HttpResponse to the CreateUser method
+                return true;
             }
-            catch (Exception ex)
+            catch (JsonException)
             {
-                response.ResponseCode = 500; // Internal Server Error
-                response.ResponseMessage = $"Internal server error: {ex.Message}";
+                rs.ResponseCode = 400;
+                rs.Content = "Failed to parse user data.";
                 return false;
             }
         }
 
-        private async Task<bool> HandlePost(HttpRequest request, HttpResponse response)
+        private bool GetUserData(HttpRequest rq, HttpResponse rs)
         {
+            var username = rq.Path.LastOrDefault();
+            if (!TryAuthorize(rq, rs, username))
+                return false;
+
             try
             {
-                var user = JsonSerializer.Deserialize<User>(request.Content ?? string.Empty);
+                var user = userDAO.GetUserByUsername(username);
                 if (user == null)
                 {
-                    response.ResponseCode = 400; // Bad Request
-                    response.ResponseMessage = "Invalid user data";
+                    rs.ResponseCode = 404;
+                    rs.Content = "User not found.";
                     return false;
                 }
 
-                await userRepository.AddUser(user.Username, user.Password, user.Name, user.Bio, user.Image, user.Elo);
-                response.ResponseCode = 201; // Created
-                response.ResponseMessage = "User created successfully";
+                rs.Content = JsonSerializer.Serialize(user);
+                rs.SetJsonContentType();
+                rs.ResponseCode = 200;
                 return true;
             }
             catch (Exception ex)
             {
-                response.ResponseCode = 400; // Bad Request
-                response.ResponseMessage = $"Error creating user: {ex.Message}";
+                rs.SetServerError(ex.Message); // Set the error message as the content
                 return false;
             }
         }
 
-        private async Task<bool> HandleGet(HttpRequest request, HttpResponse response)
+        private bool UpdateUser(HttpRequest rq, HttpResponse rs)
         {
-            if (request.Path.Length < 3)
+            var username = rq.Path.LastOrDefault();
+            if (!TryAuthorize(rq, rs, username))
+                return false;
+
+            try
             {
-                response.ResponseCode = 400; // Bad Request
-                response.ResponseMessage = "Username is required";
+                var user = JsonSerializer.Deserialize<User>(rq.Content ?? "{}");
+                if (user == null)
+                {
+                    rs.ResponseCode = 400;
+                    rs.Content = "Invalid update data provided.";
+                    return false;
+                }
+
+                userDAO.UpdateUser(rq, rs, user, username); // Pass HttpRequest and HttpResponse to the UpdateUser method
+                return true;
+            }
+            catch (JsonException)
+            {
+                rs.ResponseCode = 400;
+                rs.Content = "Failed to parse update data.";
                 return false;
             }
-
-            string username = request.Path[2];
-            var user = await userRepository.GetUserByUsername(username);
-            if (user == null)
+            catch (Exception ex)
             {
-                response.ResponseCode = 404; // Not Found
-                response.ResponseMessage = "User not found";
+                rs.SetServerError(ex.Message); // Set the error message as the content
                 return false;
             }
-
-            response.ResponseCode = 200; // OK
-            response.ResponseMessage = "OK";
-            response.Content = JsonSerializer.Serialize(user);
-            response.Headers.Add("Content-Type", "application/json");
-            return true;
         }
 
-        private async Task<bool> HandlePut(HttpRequest request, HttpResponse response)
+        private bool TryAuthorize(HttpRequest rq, HttpResponse rs, string username)
         {
-            if (request.Path.Length < 3)
+            if (!rq.Headers.TryGetValue("Authorization", out string authHeader) || !authHeader.StartsWith("Basic "))
             {
-                response.ResponseCode = 400; // Bad Request
-                response.ResponseMessage = "Username is required for update";
+                rs.ResponseCode = 401;
+                rs.Content = "Unauthorized: Authentication required.";
                 return false;
             }
 
-            string username = request.Path[2];
-            var userUpdate = JsonSerializer.Deserialize<User>(request.Content ?? string.Empty);
-            if (userUpdate == null)
+            var token = authHeader.Substring("Basic ".Length);
+            if (!TokenService.ValidateToken(token, username))
             {
-                response.ResponseCode = 400; // Bad Request
-                response.ResponseMessage = "Invalid user data";
+                rs.ResponseCode = 401;
+                rs.Content = "Unauthorized: Invalid token or username.";
                 return false;
             }
 
-            // Assuming a method in UserRepository to update user data
-            await userRepository.UpdateUser(username, userUpdate);
-            response.ResponseCode = 200; // OK
-            response.ResponseMessage = "User updated successfully";
             return true;
         }
     }

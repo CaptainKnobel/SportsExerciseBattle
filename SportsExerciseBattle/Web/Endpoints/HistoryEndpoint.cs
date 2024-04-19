@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Castle.Components.DictionaryAdapter.Xml;
 using SportsExerciseBattle.DataAccessLayer;
 using SportsExerciseBattle.Services;
+using SportsExerciseBattle.Models;
 using SportsExerciseBattle.Web.HTTP;
 using HttpMethod = SportsExerciseBattle.Web.HTTP.HttpMethod; // makes sure the correct HttpMethod is used
 
@@ -14,100 +15,95 @@ namespace SportsExerciseBattle.Web.Endpoints
 {
     public class HistoryEndpoint : IHttpEndpoint
     {
-        private readonly HistoryRepository _historyRepository = new HistoryRepository();
-        private readonly TournamentService _tournamentService = new TournamentService();
+        private HistoryDAO historyDAO = new HistoryDAO();
 
-        public HistoryEndpoint()
+        public bool HandleRequest(HttpRequest rq, HttpResponse rs)
         {
+            switch (rq.Method)
+            {
+                case HttpMethod.POST:
+                    return AddEntry(rq, rs);
+                case HttpMethod.GET:
+                    return GetEntries(rq, rs);
+                default:
+                    return false;
+            }
         }
 
-        public bool HandleRequest(HttpRequest request, HttpResponse response)
+        private bool AddEntry(HttpRequest rq, HttpResponse rs)
         {
-            try
-            {
-                switch (request.Method)
-                {
-                    case HttpMethod.POST:
-                        return HandlePost(request, response).Result;
-                    case HttpMethod.GET:
-                        return HandleGet(request, response).Result;
-                    default:
-                        response.ResponseCode = 405;  // Method Not Allowed
-                        return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                response.ResponseCode = 500; // Internal Server Error
-                response.ResponseMessage = $"Internal server error: {ex.Message}";
+            if (!TryAuthorize(rq, rs, out string username))
                 return false;
-            }
-        }
 
-        private async Task<bool> HandlePost(HttpRequest request, HttpResponse response)
-        {
             try
             {
-                var entry = JsonSerializer.Deserialize<Entry>(request.Content ?? string.Empty);
+                var entry = JsonSerializer.Deserialize<Entry>(rq.Content ?? "{}");
                 if (entry == null)
                 {
-                    response.ResponseCode = 400; // Bad Request
-                    response.ResponseMessage = "Invalid entry data";
+                    rs.ResponseCode = 400;
+                    rs.Content = "Invalid request data";
                     return false;
                 }
 
-                // Assume ValidateToken checks and decodes the token into a username
-                var username = TokenService.ValidateRequestAndGetUsername(request);
-                if (username == null)
-                {
-                    response.ResponseCode = 401; // Unauthorized
-                    return false;
-                }
-
-                await _historyRepository.AddEntry(username, entry);
-                response.ResponseCode = 201; // Created
-                response.ResponseMessage = "Entry added";
+                historyDAO.AddEntry(username, entry, rs); // Provide HttpResponse parameter
+                TournamentHelper.ManageTournament();
+                rs.SetSuccess("Entry added successfully", 201); // Provide code
                 return true;
+            }
+            catch (JsonException)
+            {
+                rs.ResponseCode = 400;
+                rs.Content = "Failed to parse entry data";
+                return false;
             }
             catch (Exception ex)
             {
-                response.ResponseCode = 500; // Internal Server Error
-                response.ResponseMessage = $"Error processing request: {ex.Message}";
+                rs.SetServerError(ex.Message); // Pass exception message
                 return false;
             }
         }
 
-        private async Task<bool> HandleGet(HttpRequest request, HttpResponse response)
+
+        private bool GetEntries(HttpRequest rq, HttpResponse rs)
         {
-            try
-            {
-                var username = TokenService.ValidateRequestAndGetUsername(request);
-                if (username == null)
-                {
-                    response.ResponseCode = 401; // Unauthorized
-                    return false;
-                }
+            if (!TryAuthorize(rq, rs, out string username))
+                return false;
 
-                var entries = await _historyRepository.GetEntriesByUsername(username);
-                if (!entries.Any())
-                {
-                    response.ResponseCode = 404; // Not Found
-                    response.ResponseMessage = "No history entries found";
-                    return false;
-                }
-
-                response.Content = JsonSerializer.Serialize(entries);
-                response.Headers.Add("Content-Type", "application/json");
-                response.ResponseCode = 200; // OK
-                response.ResponseMessage = "OK";
-                return true;
-            }
-            catch (Exception ex)
+            var entries = historyDAO.GetEntries(username);
+            if (entries == null || entries.Count == 0)
             {
-                response.ResponseCode = 500; // Internal Server Error
-                response.ResponseMessage = $"Error retrieving history: {ex.Message}";
+                rs.ResponseCode = 404;
+                rs.Content = "No entries found";
                 return false;
             }
+
+            rs.Content = JsonSerializer.Serialize(entries);
+            rs.SetJsonContentType();
+            rs.ResponseCode = 200;
+            return true;
+        }
+
+        private bool TryAuthorize(HttpRequest rq, HttpResponse rs, out string username)
+        {
+            username = "";
+            if (!rq.Headers.TryGetValue("Authorization", out string authHeader) || !authHeader.StartsWith("Basic "))
+            {
+                rs.ResponseCode = 401;
+                rs.Content = "Unauthorized";
+                return false;
+            }
+
+            var token = authHeader.Substring("Basic ".Length);
+            username = token.Split("-")[0];
+
+            if (!TokenService.ValidateToken(token, username))
+            {
+                rs.ResponseCode = 401;
+                rs.Content = "Unauthorized";
+                return false;
+            }
+
+            return true;
         }
     }
 }

@@ -16,63 +16,53 @@ namespace SportsExerciseBattle.Web.Endpoints
 {
     public class SessionsEndpoint : IHttpEndpoint
     {
-        private readonly UserRepository _userRepository = new UserRepository();
+        private SessionDAO sessionDAO = new SessionDAO(); // Create an instance of SessionDAO
 
-        public SessionsEndpoint()
+        public bool HandleRequest(HttpRequest rq, HttpResponse rs)
         {
+            if (rq.Method == HttpMethod.POST)
+            {
+                return Login(rq, rs);
+            }
+            return false;
         }
 
-        public bool HandleRequest(HttpRequest request, HttpResponse response)
+        private bool Login(HttpRequest rq, HttpResponse rs)
         {
             try
             {
-                switch (request.Method)
+                var loginRequest = JsonSerializer.Deserialize<User>(rq.Content ?? "{}");
+                if (loginRequest == null)
                 {
-                    case HttpMethod.POST:
-                        return HandlePost(request, response).Result;
-                    default:
-                        response.ResponseCode = 405;  // Method Not Allowed
-                        return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                response.ResponseCode = 500; // Internal Server Error
-                response.ResponseMessage = $"Internal server error: {ex.Message}";
-                return false;
-            }
-        }
-
-        private async Task<bool> HandlePost(HttpRequest request, HttpResponse response)
-        {
-            try
-            {
-                var loginRequest = JsonSerializer.Deserialize<LoginRequest>(request.Content ?? string.Empty);
-                if (loginRequest == null || string.IsNullOrEmpty(loginRequest.Username) || string.IsNullOrEmpty(loginRequest.Password))
-                {
-                    response.ResponseMessage = "Invalid login data"; // Sending back a response for invalid data
+                    rs.ResponseCode = 400;
+                    rs.Content = "Invalid login data provided.";
                     return false;
                 }
 
-                if (await _userRepository.VerifyPassword(loginRequest.Username, loginRequest.Password))
+                if (sessionDAO.Login(loginRequest, rs)) // Pass HttpResponse parameter
                 {
-                    var user = await _userRepository.GetUserByUsername(loginRequest.Username);
-                    if (user != null)
-                    {
-                        var token = TokenService.CreateToken(user.Username); // Generating token using the TokenService
-                        response.Content = JsonSerializer.Serialize(new { Token = token });
-                        response.Headers.Add("Content-Type", "application/json");
-                        response.ResponseMessage = "Login successful";
-                        return true;
-                    }
+                    var token = TokenService.GenerateToken(loginRequest);
+                    rs.Content = JsonSerializer.Serialize(new { Token = token });
+                    rs.SetJsonContentType();
+                    rs.ResponseCode = 200;
+                    return true;
                 }
-
-                response.ResponseMessage = "Invalid username or password"; // Sending back a response for failed authentication
+                else
+                {
+                    rs.ResponseCode = 401;
+                    rs.Content = "Login failed.";
+                    return false;
+                }
+            }
+            catch (JsonException)
+            {
+                rs.ResponseCode = 400;
+                rs.Content = "Failed to parse login data.";
                 return false;
             }
             catch (Exception ex)
             {
-                response.ResponseMessage = $"Error processing request: {ex.Message}"; // Handling exceptions
+                rs.SetServerError(ex.Message); // Pass the exception message
                 return false;
             }
         }

@@ -23,9 +23,9 @@ namespace SportsExerciseBattle.Web.HTTP
 
         public void Send()
         {
-            var writerAlsoToConsole = new StreamTracer(writer);  // we use a simple helper-class StreamTracer to write the HTTP-Response to the client and to the console
+            var writerAlsoToConsole = new StreamTracer(writer);
 
-            writerAlsoToConsole.WriteLine($"{HttpVersion} {ResponseCode} {ResponseMessage}");    // first line in HTTP-Response contains the HTTP-Version and the status code
+            writerAlsoToConsole.WriteLine($"{HttpVersion} {ResponseCode} {ResponseMessage}");
 
             if (Content != null)
             {
@@ -33,11 +33,37 @@ namespace SportsExerciseBattle.Web.HTTP
             }
             foreach (var header in Headers)
             {
-                writerAlsoToConsole.WriteLine($"{header.Key}: {header.Value}");    // the HTTP-headers (in HTTP after the first line, until the empy line)
+                writerAlsoToConsole.WriteLine($"{header.Key}: {header.Value}");
             }
             writerAlsoToConsole.WriteLine();
             if (Content != null)
                 writerAlsoToConsole.WriteLine(Content);
+        }
+
+        // Method to set success response
+        public void SetSuccess(string message, int code)
+        {
+            ResponseMessage = message;
+            ResponseCode = code;
+        }
+
+        // Method to set client error response
+        public void SetClientError(string message, int code)
+        {
+            ResponseMessage = message;
+            ResponseCode = code;
+        }
+
+        // Method to set server error response
+        public void SetServerError(string message)
+        {
+            ResponseMessage = message;
+            ResponseCode = 500; // Internal Server Error
+        }
+
+        public void SetJsonContentType()
+        {
+            Headers["Content-Type"] = "application/json";
         }
     }
 }

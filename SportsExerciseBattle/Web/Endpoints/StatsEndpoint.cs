@@ -1,4 +1,5 @@
 ﻿using SportsExerciseBattle.DataAccessLayer;
+using SportsExerciseBattle.Services;
 using SportsExerciseBattle.Web.HTTP;
 using System;
 using System.Collections.Generic;
@@ -12,53 +13,64 @@ namespace SportsExerciseBattle.Web.Endpoints
 {
     public class StatsEndpoint : IHttpEndpoint
     {
-        private readonly UserRepository _userRepository = new UserRepository();
+        private StatsDAO statsDAO = new StatsDAO();
 
-        public StatsEndpoint()
+        public bool HandleRequest(HttpRequest rq, HttpResponse rs)
         {
+            if (rq.Method == HttpMethod.GET)
+            {
+                return GetStats(rq, rs);
+            }
+            return false;
         }
 
-        public bool HandleRequest(HttpRequest request, HttpResponse response)
+        private bool GetStats(HttpRequest rq, HttpResponse rs)
         {
+            if (!TryAuthorize(rq, rs, out string username))
+                return false;
+
             try
             {
-                if (request.Method == HttpMethod.GET)
+                var stats = statsDAO.GetStats(username);
+                if (stats == null)
                 {
-                    return HandleGet(request, response).Result;
+                    rs.ResponseCode = 404;
+                    rs.Content = "Stats not found";
+                    return false;
                 }
-                response.ResponseCode = 405;  // Method Not Allowed
-                return false;
+
+                rs.Content = JsonSerializer.Serialize(stats);
+                rs.SetJsonContentType();
+                rs.ResponseCode = 200;
+                return true;
             }
             catch (Exception ex)
             {
-                response.ResponseCode = 500; // Internal Server Error
-                response.ResponseMessage = $"Internal server error: {ex.Message}";
+                rs.SetServerError(ex.Message); // Pass the exception message
                 return false;
             }
         }
 
-        private async Task<bool> HandleGet(HttpRequest request, HttpResponse response)
+        private bool TryAuthorize(HttpRequest rq, HttpResponse rs, out string username)
         {
-            if (request.Path.Length < 3)
+            username = "";
+            if (!rq.Headers.TryGetValue("Authorization", out string authHeader) || !authHeader.StartsWith("Basic "))
             {
-                response.ResponseCode = 400; // Bad Request
-                response.ResponseMessage = "Username is required";
+                rs.ResponseCode = 401;
+                rs.Content = "Unauthorized";
                 return false;
             }
 
-            string username = request.Path[2];
-            var userStats = await _userRepository.GetUserStats(username);
-            if (userStats == null)
+            var token = authHeader.Substring("Basic ".Length);
+            username = token.Split("-")[0];
+
+            if (!TokenService.ValidateToken(token, username))
             {
-                response.ResponseCode = 404; // Not Found
-                response.ResponseMessage = "Stats not found";
+                rs.ResponseCode = 401;
+                rs.Content = "Unauthorized";
                 return false;
             }
 
-            response.ResponseCode = 200; // OK
-            response.ResponseMessage = "OK";
-            response.Content = JsonSerializer.Serialize(userStats);
-            response.Headers.Add("Content-Type", "application/json");
             return true;
         }
     }

@@ -1,12 +1,79 @@
-﻿using System;
+﻿using SportsExerciseBattle.Models;
+using SportsExerciseBattle.Services;
+using SportsExerciseBattle.Web.HTTP;
+using SportsExerciseBattle.DataAccessLayer;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using HttpMethod = SportsExerciseBattle.Web.HTTP.HttpMethod; // makes sure the correct HttpMethod is used
 
 namespace SportsExerciseBattle.Web.Endpoints
 {
-    internal class TournamentEndpoint
+    public class TournamentEndpoint : IHttpEndpoint
     {
+        private TournamentDAO tournamentDAO = new TournamentDAO(); // Instance of TournamentDAO
+
+        public bool HandleRequest(HttpRequest rq, HttpResponse rs)
+        {
+            if (rq.Method == HttpMethod.GET)
+            {
+                return GetTournamentInfo(rq, rs);
+            }
+            return false;
+        }
+
+        private bool GetTournamentInfo(HttpRequest rq, HttpResponse rs)
+        {
+            if (!TryAuthorize(rq, rs, out string username))
+                return false;
+
+            try
+            {
+                var tournament = Tournament.Instance;
+                if (!tournament.IsRunning)
+                {
+                    rs.ResponseCode = 404;
+                    rs.Content = "No tournament currently running.";
+                    return false;
+                }
+
+                tournamentDAO.UpdateTournamentDetails(tournament); // Assume this method updates participants and leaders
+                rs.Content = JsonSerializer.Serialize(tournament);
+                rs.SetJsonContentType();
+                rs.ResponseCode = 200;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                rs.SetServerError(ex.Message); // Pass the exception message
+                return false;
+            }
+        }
+
+        private bool TryAuthorize(HttpRequest rq, HttpResponse rs, out string username)
+        {
+            username = "";
+            if (!rq.Headers.TryGetValue("Authorization", out string authHeader) || !authHeader.StartsWith("Basic "))
+            {
+                rs.ResponseCode = 401;
+                rs.Content = "Unauthorized";
+                return false;
+            }
+
+            var token = authHeader.Substring("Basic ".Length);
+            username = token.Split("-")[0];
+
+            if (!TokenService.ValidateToken(token, username))
+            {
+                rs.ResponseCode = 401;
+                rs.Content = "Unauthorized";
+                return false;
+            }
+
+            return true;
+        }
     }
 }
