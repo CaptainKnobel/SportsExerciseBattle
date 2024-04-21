@@ -8,9 +8,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using HttpMethod = SportsExerciseBattle.Web.HTTP.HttpMethod; // makes sure the correct HttpMethod is used
 using SportsExerciseBattle.Models;
-using SportsExerciseBattle.DataAccessLayer;
 using SportsExerciseBattle.Web.HTTP;
 using SportsExerciseBattle.Services;
+using SportsExerciseBattle.DataAccessLayer.DAO;
 
 namespace SportsExerciseBattle.Web.Endpoints
 {

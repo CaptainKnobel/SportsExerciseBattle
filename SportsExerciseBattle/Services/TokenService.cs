@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Npgsql;
 using SportsExerciseBattle.Models;
-using SportsExerciseBattle.DataAccessLayer;
+using SportsExerciseBattle.DataAccessLayer.Connection;
 
 namespace SportsExerciseBattle.Services
 {

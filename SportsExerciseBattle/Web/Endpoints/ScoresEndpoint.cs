@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using SportsExerciseBattle.DataAccessLayer;
+using SportsExerciseBattle.DataAccessLayer.DAO;
 using SportsExerciseBattle.Services;
 using SportsExerciseBattle.Web.HTTP;
 using HttpMethod = SportsExerciseBattle.Web.HTTP.HttpMethod; // makes sure the correct HttpMethod is used

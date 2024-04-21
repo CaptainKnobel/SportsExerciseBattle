@@ -1,5 +1,5 @@
 ﻿using Npgsql;
-using SportsExerciseBattle.DataAccessLayer;
+using SportsExerciseBattle.DataAccessLayer.Connection;
 using SportsExerciseBattle.Models;
 using SportsExerciseBattle.Web.HTTP;
 using System;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SportsExerciseBattle.DataAccessLayer
+namespace SportsExerciseBattle.DataAccessLayer.DAO
 {
     public class HistoryDAO
     {

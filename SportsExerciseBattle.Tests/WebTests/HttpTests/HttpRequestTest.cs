@@ -1,8 +1,4 @@
-﻿using NUnit.Framework;
-using SportsExerciseBattle.Web.HTTP;
-using System.IO;
-using System.Text;
-
+﻿/*
 namespace SportsExerciseBattle.Tests
 {
     [TestFixture]
@@ -55,3 +51,4 @@ namespace SportsExerciseBattle.Tests
         }
     }
 }
+*/

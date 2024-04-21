@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Npgsql;
 
-namespace SportsExerciseBattle.DataAccessLayer.Database
+namespace SportsExerciseBattle.Database
 {
     public class DatabaseSetup
     {

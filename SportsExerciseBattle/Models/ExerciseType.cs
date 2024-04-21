@@ -10,8 +10,8 @@ namespace SportsExerciseBattle.Models
     {
         PushUp,
         SitUp,
-        Running,
         JumpingJack,
-        Squat
+        Running,
+        Plank
     }
 }

@@ -1,4 +1,4 @@
-﻿using SportsExerciseBattle.DataAccessLayer;
+﻿using SportsExerciseBattle.DataAccessLayer.DAO;
 using SportsExerciseBattle.Services;
 using SportsExerciseBattle.Web.HTTP;
 using System;

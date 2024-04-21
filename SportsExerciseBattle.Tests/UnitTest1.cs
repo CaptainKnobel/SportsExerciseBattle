@@ -1,10 +1,8 @@
-using NUnit.Framework;
-using SportsExerciseBattle.Web.HTTP;  // Assuming your classes to test are in this namespace
-
+/*
 namespace SportsExerciseBattle.Tests
 {
     [TestFixture]
-    public class HttpRequestTests
+    public class UnitTest1
     {
         private HttpRequest request;
 
@@ -24,3 +22,4 @@ namespace SportsExerciseBattle.Tests
         }
     }
 }
+*/

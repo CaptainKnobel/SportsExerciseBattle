@@ -1,14 +1,14 @@
 ﻿using SportsExerciseBattle.Models;
 using SportsExerciseBattle.Services;
 using SportsExerciseBattle.Web.HTTP;
-using SportsExerciseBattle.DataAccessLayer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using HttpMethod = SportsExerciseBattle.Web.HTTP.HttpMethod; // makes sure the correct HttpMethod is used
+using HttpMethod = SportsExerciseBattle.Web.HTTP.HttpMethod;
+using SportsExerciseBattle.DataAccessLayer.DAO; // makes sure the correct HttpMethod is used
 
 namespace SportsExerciseBattle.Web.Endpoints
 {
@@ -27,8 +27,9 @@ namespace SportsExerciseBattle.Web.Endpoints
 
         private bool GetTournamentInfo(HttpRequest rq, HttpResponse rs)
         {
-            if (!TryAuthorize(rq, rs, out string username))
-                return false;
+            if (!TryAuthorize(rq, rs, out string username)) { 
+                return false; 
+            }
 
             try
             {

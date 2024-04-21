@@ -5,11 +5,11 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Castle.Components.DictionaryAdapter.Xml;
-using SportsExerciseBattle.DataAccessLayer;
 using SportsExerciseBattle.Services;
 using SportsExerciseBattle.Models;
 using SportsExerciseBattle.Web.HTTP;
-using HttpMethod = SportsExerciseBattle.Web.HTTP.HttpMethod; // makes sure the correct HttpMethod is used
+using HttpMethod = SportsExerciseBattle.Web.HTTP.HttpMethod;
+using SportsExerciseBattle.DataAccessLayer.DAO; // makes sure the correct HttpMethod is used
 
 namespace SportsExerciseBattle.Web.Endpoints
 {
