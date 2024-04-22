@@ -127,6 +127,22 @@ namespace SportsExerciseBattle.DataAccessLayer
             }
             return null;
         }
+        public async Task UpdateUser(User user)
+        {
+            using (var conn = DBConnectionManager.Instance.CreateConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new NpgsqlCommand("UPDATE Users SET Name = @Name, Bio = @Bio, Image = @Image, Elo = @Elo WHERE Username = @Username", conn))
+                {
+                    cmd.Parameters.AddWithValue("@Name", user.Name ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Bio", user.Bio ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Image", user.Image ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Elo", user.Elo);
+                    cmd.Parameters.AddWithValue("@Username", user.Username);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
 
         public async Task<UserStats> GetUserStats(string username)
         {

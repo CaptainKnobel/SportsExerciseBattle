@@ -12,6 +12,7 @@ namespace SportsExerciseBattle.DataAccessLayer
         Task<bool> VerifyPassword(string username, string password);
         Task AddUser(string username, string password, string name, string bio, string image, int elo);
         Task<User?> GetUserByUsername(string username);
+        Task UpdateUser(User user);
         Task<UserStats> GetUserStats(string username);
         Task<List<ScoreboardEntry>> GetScoreboardData();
     }

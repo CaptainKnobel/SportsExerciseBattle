@@ -56,7 +56,7 @@ namespace SportsExerciseBattle.Web.Endpoints
                     return false;
                 }
 
-                await userRepository.AddUser(user.Username, user.Password, user.Name, user.Bio, user.Image, user.Elo);
+                await userRepository.AddUser(user.Username, user.Password, user.Name, user.Bio ?? "", user.Image ?? "", user.Elo);
                 rs.ResponseCode = 201;
                 rs.Content = "User created successfully.";
                 return true;
@@ -71,8 +71,8 @@ namespace SportsExerciseBattle.Web.Endpoints
 
         private async Task<bool> GetUserData(HttpRequest rq, HttpResponse rs)
         {
-            var username = rq.Path.LastOrDefault();
-            if (!await TryAuthorize(rq, rs, username))
+            var username = rq.Path.LastOrDefault() ?? "";
+            if (!TryAuthorize(rq, rs, username))
             {
                 return false;
             }
@@ -101,19 +101,57 @@ namespace SportsExerciseBattle.Web.Endpoints
 
         private async Task<bool> UpdateUser(HttpRequest rq, HttpResponse rs)
         {
-            var username = rq.Path.LastOrDefault();
-            if (!await TryAuthorize(rq, rs, username))
+            var username = rq.Path.LastOrDefault() ?? "";
+            if (!TryAuthorize(rq, rs, username))
             {
                 return false;
             }
 
-            // Implement the logic to update user data based on your requirements.
-            return false;
+            try
+            {
+                var currentUser = await userRepository.GetUserByUsername(username);
+                if (currentUser == null)
+                {
+                    rs.ResponseCode = 404;
+                    rs.Content = "User not found.";
+                    return false;
+                }
+
+                var newData = JsonSerializer.Deserialize<User>(rq.Content ?? "{}");
+                if (newData == null)
+                {
+                    rs.ResponseCode = 400;
+                    rs.Content = "Invalid update data.";
+                    return false;
+                }
+
+                // Merging data with existing user details
+                currentUser.Name = newData.Name ?? currentUser.Name;
+                currentUser.Bio = newData.Bio ?? currentUser.Bio;
+                currentUser.Image = newData.Image ?? currentUser.Image;
+                currentUser.Elo = newData.Elo;
+
+                await userRepository.UpdateUser(currentUser);
+                rs.ResponseCode = 200;
+                rs.Content = "User updated successfully.";
+                return true;
+            }
+            catch (JsonException)
+            {
+                rs.ResponseCode = 400;
+                rs.Content = "Failed to parse update data.";
+                return false;
+            }
+            catch (Exception ex)
+            {
+                rs.SetServerError(ex.Message);
+                return false;
+            }
         }
 
-        private async Task<bool> TryAuthorize(HttpRequest rq, HttpResponse rs, string username)
+        private bool TryAuthorize(HttpRequest rq, HttpResponse rs, string username)
         {
-            if (!rq.Headers.TryGetValue("Authorization", out string authHeader) || !authHeader.StartsWith("Basic "))
+            if (!rq.Headers.TryGetValue("Authorization", out string? authHeader) || !authHeader.StartsWith("Basic "))
             {
                 rs.ResponseCode = 401;
                 rs.Content = "Unauthorized: Authentication required.";
