@@ -193,6 +193,5 @@ namespace SportsExerciseBattle.DataAccessLayer
             }
             return entries;
         }
-
     }
 }

@@ -35,10 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DataAccessLayerTests\" />
     <Folder Include="DatabaseTests\" />
-    <Folder Include="UtilitiesTests\" />
-    <Folder Include="WebTests\EndpointsTests\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -30,8 +30,6 @@ namespace SportsExerciseBattle
                 // Start the HTTP server with endpoints
                 HttpServer httpServer = new HttpServer(IPAddress.Any, 10001);
                 httpServer.RegisterEndpoint("users", new UsersEndpoint());
-                httpServer.RegisterEndpoint("sessions", new SessionsEndpoint());
-                httpServer.RegisterEndpoint("stats", new StatsEndpoint());
                 httpServer.RegisterEndpoint("score", new ScoresEndpoint());
                 httpServer.RegisterEndpoint("history", new HistoryEndpoint());
                 httpServer.RegisterEndpoint("tournament", new TournamentEndpoint());

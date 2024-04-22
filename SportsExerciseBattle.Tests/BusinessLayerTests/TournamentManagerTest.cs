@@ -36,7 +36,7 @@ namespace SportsExerciseBattle.Tests.BusinessLayerTests
         }
 
         [Test]
-        public async Task StartTournament_CallsRepositoryMethod()
+        public void StartTournament_CallsRepositoryMethod()
         {
             // Arrange
             int tournamentId = 1;
@@ -50,17 +50,19 @@ namespace SportsExerciseBattle.Tests.BusinessLayerTests
         }
 
         [Test]
-        public async Task EndTournament_CallsUpdateMethod()
+        public void EndTournament_CallsUpdateMethod()
         {
             // Arrange
             int tournamentId = 1;
-            // Set up a TournamentManager instance with an existing timer to simulate a running tournament
-            MethodInfo startTournament = typeof(TournamentManager).GetMethod("StartTournament", BindingFlags.NonPublic | BindingFlags.Instance);
-            startTournament?.Invoke(_tournamentManager, new object[] { tournamentId, ExerciseType.PushUp });
+
+            // Using reflection to invoke private methods
+            MethodInfo startMethod = typeof(TournamentManager).GetMethod("StartTournament", BindingFlags.NonPublic | BindingFlags.Instance);
+            startMethod?.Invoke(_tournamentManager, new object[] { tournamentId, ExerciseType.PushUp });
 
             // Act
-            MethodInfo endTournament = typeof(TournamentManager).GetMethod("EndTournament", BindingFlags.NonPublic | BindingFlags.Instance);
-            await (Task)endTournament?.Invoke(_tournamentManager, new object[] { tournamentId });
+            MethodInfo endMethod = typeof(TournamentManager).GetMethod("EndTournament", BindingFlags.NonPublic | BindingFlags.Instance);
+            var endTask = (Task)endMethod?.Invoke(_tournamentManager, new object[] { tournamentId });
+            endTask?.GetAwaiter().GetResult(); // Correctly await the task
 
             // Assert
             _mockTournamentRepository.Verify(repo => repo.UpdateTournamentAsync(It.IsAny<Tournament>()), Times.Once);
