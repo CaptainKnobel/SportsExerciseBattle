@@ -35,7 +35,7 @@ namespace SportsExerciseBattle.BusinessLayer
             }
 
             var timer = new Timer(120000); // Set duration for the tournament
-            timer.Elapsed += (sender, e) => EndTournament(tournamentId);
+            timer.Elapsed += async (sender, e) => await EndTournament(tournamentId); // Asynchronous lambda to handle the timer elapsed event
             timer.AutoReset = false;
             timer.Start();
 
@@ -49,7 +49,9 @@ namespace SportsExerciseBattle.BusinessLayer
                 IsRunning = true
             };
 
-            _tournamentRepository.StartUserTournament("system", JsonSerializer.Serialize(tournament));
+            // Await with an asynchronous call to StartUserTournament
+            Task.Run(() => _tournamentRepository.StartUserTournament("system", JsonSerializer.Serialize(tournament)))
+                .GetAwaiter().GetResult(); // Properly wait for the task to complete if synchronous execution is needed
             Console.WriteLine($"{DateTime.Now} - {exerciseType} tournament {tournamentId} started.");
 
             _historyRepository.AddEntry("system", new HistoryEntry
@@ -58,7 +60,7 @@ namespace SportsExerciseBattle.BusinessLayer
                 Count = 0,
                 DurationInSeconds = 0,
                 Timestamp = DateTime.Now
-            });
+            }).GetAwaiter().GetResult(); // Ensures this completes synchronously
         }
 
         private async Task EndTournament(int tournamentId)
@@ -118,14 +120,14 @@ namespace SportsExerciseBattle.BusinessLayer
             {
                 foreach (var winner in winners)
                 {
-                    _tournamentRepository.UpdateEloScores(winner, 1); // +1 ELO for draw
+                    await _tournamentRepository.UpdateEloScores(winner, 1); // +1 ELO for draw
                 }
                 Console.WriteLine($"Draw between: {String.Join(", ", winners)}. Each gets +1 ELO.");
             }
             else if (winners.Count == 1)
             {
                 string winner = winners.First();
-                _tournamentRepository.UpdateEloScores(winner, 2); // +2 ELO for the winner
+                await _tournamentRepository.UpdateEloScores(winner, 2); // +2 ELO for the winner
                 Console.WriteLine($"Winner: {winner} with score {maxScore}. +2 ELO awarded.");
             }
 
@@ -133,7 +135,7 @@ namespace SportsExerciseBattle.BusinessLayer
             var losers = scores.Keys.Except(winners).ToList();
             foreach (var loser in losers)
             {
-                _tournamentRepository.UpdateEloScores(loser, -1); // -1 ELO for non-winners
+                await _tournamentRepository.UpdateEloScores(loser, -1); // -1 ELO for non-winners
             }
         }
     }

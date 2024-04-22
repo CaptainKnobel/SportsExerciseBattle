@@ -90,7 +90,7 @@ namespace SportsExerciseBattle.Web.Endpoints
         private bool TryAuthorize(HttpRequest rq, HttpResponse rs, out string username)
         {
             username = "";
-            if (!rq.Headers.TryGetValue("Authorization", out string authHeader) || !authHeader.StartsWith("Basic "))
+            if (!rq.Headers.TryGetValue("Authorization", out string? authHeader) || !authHeader.StartsWith("Basic "))
             {
                 rs.ResponseCode = 401;
                 rs.Content = "Unauthorized";
@@ -98,8 +98,19 @@ namespace SportsExerciseBattle.Web.Endpoints
             }
 
             var token = authHeader.Substring("Basic ".Length);
-            username = token.Split(':')[0];  // Simplified username extraction
-            return TokenService.ValidateToken(token, username); // Simplified validation
+            string decodedToken = Encoding.UTF8.GetString(Convert.FromBase64String(token));  // Decoding the token from Base64
+            var parts = decodedToken.Split(':');
+            if (parts.Length > 0 && !string.IsNullOrWhiteSpace(parts[0]))
+            {
+                username = parts[0]; // Ensure username is not null or whitespace
+                return TokenService.ValidateToken(token, username);
+            }
+            else
+            {
+                rs.ResponseCode = 401;
+                rs.Content = "Invalid token format";
+                return false;
+            }
         }
     }
 }

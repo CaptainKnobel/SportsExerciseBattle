@@ -58,7 +58,7 @@ namespace SportsExerciseBattle.Web.Endpoints
         private bool TryAuthorize(HttpRequest rq, HttpResponse rs, out string username)
         {
             username = "";
-            if (!rq.Headers.TryGetValue("Authorization", out string authHeader) || !authHeader.StartsWith("Basic "))
+            if (!rq.Headers.TryGetValue("Authorization", out string? authHeader) || !authHeader.StartsWith("Basic "))
             {
                 rs.ResponseCode = 401;
                 rs.Content = "Unauthorized";

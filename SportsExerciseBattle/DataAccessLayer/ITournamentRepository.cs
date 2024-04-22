@@ -13,7 +13,7 @@ namespace SportsExerciseBattle.DataAccessLayer
         Task UpdateTournamentAsync(Tournament tournament);
         Task<bool> StartUserTournament(string username, string tournamentData);
         Task<bool> UpdateEloScores(string username, int eloChange);
-        Task<string> GetTournamentResults(int tournamentId);
+        Task<string?> GetTournamentResults(int tournamentId);
         Task<int> RecordTournamentOutcome(string winnerUsername, IEnumerable<string> participantUsernames);
 
     }

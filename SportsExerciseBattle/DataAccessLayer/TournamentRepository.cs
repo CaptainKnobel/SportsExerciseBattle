@@ -100,7 +100,7 @@ namespace SportsExerciseBattle.DataAccessLayer
             }
         }
 
-        public async Task<string> GetTournamentResults(int tournamentId)
+        public async Task<string?> GetTournamentResults(int tournamentId)
         {
             // Logic to fetch tournament results
             const string query = @"
@@ -126,7 +126,7 @@ namespace SportsExerciseBattle.DataAccessLayer
                     }
                 }
             }
-            return null; // Return null or appropriate default if no results found
+            return null; // Return null if no results found
         }
         public async Task<int> RecordTournamentOutcome(string winnerUsername, IEnumerable<string> participantUsernames)
         {

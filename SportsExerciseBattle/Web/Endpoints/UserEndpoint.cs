@@ -39,7 +39,7 @@ namespace SportsExerciseBattle.Web.Endpoints
             }
             catch (Exception ex)
             {
-                rs.SetServerError("Internal server error.");
+                rs.SetServerError($"Internal server error: {ex.Message}");
                 return false;
             }
         }
