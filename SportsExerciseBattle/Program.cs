@@ -1,49 +1,42 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System;
+using System.Net;
 using Npgsql;
 using SportsExerciseBattle.Models;
 using SportsExerciseBattle.BusinessLayer;
 using SportsExerciseBattle.DataAccessLayer;
+using SportsExerciseBattle.DataAccessLayer.Connection;
+using SportsExerciseBattle.Database;
 using SportsExerciseBattle.Web.HTTP;
-using SportsExerciseBattle.Web.Controllers;
+using SportsExerciseBattle.Web.Endpoints;
 
 namespace SportsExerciseBattle
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Console.WriteLine("Program Start ...");
             Console.WriteLine("=*=*=*=[ Sports Exercise Battle Server ]=*=*=*=");
 
             try
             {
-                // Initialize database connection string
-                string connectionString = "Host=localhost;Database=mydb;Username=postgres;Password=postgres;Persist Security Info=True; Include Error Detail=True";
+                // Setup database with the new refactored DatabaseSetup that does not require a connection string passed
+                var dbSetup = new DatabaseSetup();
+                await dbSetup.SetupDatabaseAsync();
+                Console.WriteLine("Database setup complete.");
 
-                // Initialize repositories
-                var userRepository = new UserRepository(connectionString);
-                var pushUpRecordRepository = new PushUpRecordRepository(connectionString);
-                var tournamentRepository = new TournamentRepository(connectionString);
-
-                // Initialize services
-                var userService = new UserService(userRepository);
-                var tournamentService = new TournamentService(tournamentRepository);
-                var pushUpRecordService = new PushUpRecordService(pushUpRecordRepository);
-                var statsService = new StatsService(userRepository);
-
-                // Initialize controllers
-                var userController = new UserController(userService);
-                var tournamentController = new TournamentController(tournamentService);
-                var pushUpRecordController = new PushUpRecordController(pushUpRecordService);
-                var statsController = new StatsController(statsService);
-                
-                // Router setup
-                var router = new Router(userController, tournamentController, pushUpRecordController, statsController);
-                HttpServer.StartServer(10001, router);
-
-                Console.WriteLine("Server is running...");
+                // Start the HTTP server with endpoints
+                HttpServer httpServer = new HttpServer(IPAddress.Any, 10001);
+                httpServer.RegisterEndpoint("users", new UsersEndpoint());
+                httpServer.RegisterEndpoint("sessions", new SessionsEndpoint());
+                httpServer.RegisterEndpoint("stats", new StatsEndpoint());
+                httpServer.RegisterEndpoint("score", new ScoresEndpoint());
+                httpServer.RegisterEndpoint("history", new HistoryEndpoint());
+                httpServer.RegisterEndpoint("tournament", new TournamentEndpoint());
+                httpServer.RegisterEndpoint("ratio", new TournamentStatsEndpoint());
+                httpServer.Run();
             }
             catch (NpgsqlException ex)
             {
@@ -64,4 +57,6 @@ namespace SportsExerciseBattle
 } // <- End of SportsExerciseBattle namesspace
 
 
-// docker run --name SEB_db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -v pgdata:/var/lib/postgresql/data postgres
+/*
+docker run --name seb_db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -v pgdata:/var/lib/postgresql/data postgres
+*/

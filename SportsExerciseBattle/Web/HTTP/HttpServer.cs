@@ -8,53 +8,43 @@ using System.Threading.Tasks;
 using SportsExerciseBattle.BusinessLayer;
 using SportsExerciseBattle.DataAccessLayer;
 using SportsExerciseBattle.Utilities;
+using SportsExerciseBattle.Web.Endpoints;
 
 namespace SportsExerciseBattle.Web.HTTP
 {
     public class HttpServer
     {
-        public static void StartServer(int port, Router router)
-        {
-            TcpListener listener = new TcpListener(IPAddress.Loopback, port);
-            listener.Start();
-            Console.WriteLine("HTTP Server started on port " + port);
+        private readonly int port = 8000;
+        private readonly IPAddress ip = IPAddress.Loopback;
 
-            Task.Run(async () =>
-            {
-                while (true)
-                {
-                    TcpClient client = await listener.AcceptTcpClientAsync();
-                    await HandleClient(client, router);
-                }
-            });
+        private TcpListener tcpListener;
+        public Dictionary<string, IHttpEndpoint> Endpoints { get; private set; } = new Dictionary<string, IHttpEndpoint>();
+
+
+        public HttpServer(IPAddress ip, int port)
+        {
+            this.port = port;
+            this.ip = ip;
+
+            tcpListener = new TcpListener(ip, port);
         }
 
-        private static async Task HandleClient(TcpClient client, Router router)
+        public void Run()
         {
-            using (var networkStream = client.GetStream())
-            using (var reader = new StreamReader(networkStream))
-            using (var writer = new StreamWriter(networkStream) { AutoFlush = true })
+            tcpListener.Start();
+            while (true)
             {
-                string requestLine = await reader.ReadLineAsync();
-                if (requestLine == null) return;
-
-                var requestParts = requestLine.Split(' ');
-                var method = requestParts[0];
-                var url = requestParts[1];
-                var headers = new StringBuilder();
-                string line;
-                while ((line = await reader.ReadLineAsync()) != null && line != string.Empty)
-                    headers.Append(line + "\n");
-
-                var bodyBuilder = new StringBuilder();
-                while (reader.Peek() != -1)
-                    bodyBuilder.Append((char)reader.Read());
-                var body = bodyBuilder.ToString();
-
-                await router.RouteRequest(writer, method, url, body);
-                client.Close();
+                // ----- 0. Accept the TCP-Client and create the reader and writer -----
+                var clientSocket = tcpListener.AcceptTcpClient();
+                var httpProcessor = new HttpProcessor(this, clientSocket);
+                // Use ThreadPool to make it multi-threaded
+                ThreadPool.QueueUserWorkItem(o => httpProcessor.Process());
             }
         }
 
+        public void RegisterEndpoint(string path, IHttpEndpoint endpoint)
+        {
+            Endpoints.Add(path, endpoint);
+        }
     }
 }

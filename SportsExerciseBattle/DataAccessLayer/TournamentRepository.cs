@@ -6,19 +6,56 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Npgsql;
+using SportsExerciseBattle.DataAccessLayer.Connection;
 using SportsExerciseBattle.Models;
 
 namespace SportsExerciseBattle.DataAccessLayer
 {
     public class TournamentRepository : ITournamentRepository
     {
-        private readonly string _connectionString;
-
-        public TournamentRepository(string connectionString)
+        public TournamentRepository()
         {
-            _connectionString = connectionString;
+            
+        }
+        public async Task<Tournament?> GetCurrentTournamentAsync()
+        {
+            using (var connection = DBConnectionManager.Instance.CreateConnection())
+            {
+                await connection.OpenAsync();
+                using (var cmd = new NpgsqlCommand("SELECT TournamentId, StartTime, EndTime, IsRunning FROM Tournaments WHERE IsRunning = TRUE LIMIT 1", connection))
+                {
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            return new Tournament
+                            {
+                                TournamentId = reader.GetInt32(0),
+                                StartTime = reader.GetDateTime(1),
+                                EndTime = reader.IsDBNull(2) ? (DateTime?)null : reader.GetDateTime(2),
+                                IsRunning = reader.GetBoolean(3)
+                            };
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
+        public async Task UpdateTournamentAsync(Tournament tournament)
+        {
+            using (var connection = DBConnectionManager.Instance.CreateConnection())
+            {
+                await connection.OpenAsync();
+                using (var cmd = new NpgsqlCommand("UPDATE Tournaments SET EndTime = @EndTime, IsRunning = @IsRunning WHERE TournamentId = @TournamentId", connection))
+                {
+                    cmd.Parameters.AddWithValue("@EndTime", tournament.EndTime ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@IsRunning", tournament.IsRunning);
+                    cmd.Parameters.AddWithValue("@TournamentId", tournament.TournamentId);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
         public async Task<bool> StartUserTournament(string username, string tournamentData)
         {
             // Logic to insert a new tournament entry
@@ -27,7 +64,7 @@ namespace SportsExerciseBattle.DataAccessLayer
                 VALUES (@username, @data, NOW())
                 RETURNING TournamentID;";
 
-            using (var conn = new NpgsqlConnection(_connectionString))
+            using (var conn = DBConnectionManager.Instance.CreateConnection())
             {
                 await conn.OpenAsync();
                 using (var cmd = new NpgsqlCommand(query, conn))
@@ -49,7 +86,7 @@ namespace SportsExerciseBattle.DataAccessLayer
                 SET Elo = Elo + @eloChange
                 WHERE Username = @username;";
 
-            using (var conn = new NpgsqlConnection(_connectionString))
+            using (var conn = DBConnectionManager.Instance.CreateConnection())
             {
                 await conn.OpenAsync();
                 using (var cmd = new NpgsqlCommand(query, conn))
@@ -71,7 +108,7 @@ namespace SportsExerciseBattle.DataAccessLayer
                 FROM Tournaments
                 WHERE TournamentID = @tournamentId;";
 
-            using (var conn = new NpgsqlConnection(_connectionString))
+            using (var conn = DBConnectionManager.Instance.CreateConnection())
             {
                 await conn.OpenAsync();
                 using (var cmd = new NpgsqlCommand(query, conn))
@@ -98,7 +135,7 @@ namespace SportsExerciseBattle.DataAccessLayer
                 return 0; // Return failure if any username is null or empty
             }
             // Logic to update the winner's ELO and decrement for others
-            using (var conn = new NpgsqlConnection(_connectionString))
+            using (var conn = DBConnectionManager.Instance.CreateConnection())
             {
                 await conn.OpenAsync();
                 using (var tran = conn.BeginTransaction())

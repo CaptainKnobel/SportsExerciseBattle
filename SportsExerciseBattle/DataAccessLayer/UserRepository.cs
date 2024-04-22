@@ -7,16 +7,15 @@ using System.Threading.Tasks;
 using Npgsql;
 using SportsExerciseBattle.Models;
 using SportsExerciseBattle.DataAccessLayer;
+using SportsExerciseBattle.DataAccessLayer.Connection;
 
 namespace SportsExerciseBattle.DataAccessLayer
 {
     public class UserRepository : IUserRepository
     {
-        private readonly string connectionString;
-
-        public UserRepository(string connectionString)
+        public UserRepository()
         {
-            this.connectionString = connectionString;
+            
         }
         private (string Hash, string Salt) HashPassword(string password)
         {
@@ -46,7 +45,7 @@ namespace SportsExerciseBattle.DataAccessLayer
         {
             string storedHash;
             string storedSalt;
-            using (var connection = new NpgsqlConnection(connectionString))
+            using (var connection = DBConnectionManager.Instance.CreateConnection())
             {
                 await connection.OpenAsync();
                 using (var cmd = new NpgsqlCommand("SELECT PasswordHash, PasswordSalt FROM Users WHERE Username = @Username", connection))
@@ -84,7 +83,7 @@ namespace SportsExerciseBattle.DataAccessLayer
         public async Task AddUser(string username, string password, string name, string bio, string image, int elo)
         {
             var (hash, salt) = HashPassword(password);
-            using (var connection = new NpgsqlConnection(connectionString))
+            using (var connection = DBConnectionManager.Instance.CreateConnection())
             {
                 await connection.OpenAsync();
                 using (var cmd = new NpgsqlCommand("INSERT INTO Users (Username, PasswordHash, PasswordSalt, Name, Bio, Image, Elo) VALUES (@Username, @PasswordHash, @PasswordSalt, @Name, @Bio, @Image, @Elo)", connection))
@@ -101,9 +100,9 @@ namespace SportsExerciseBattle.DataAccessLayer
             }
         }
 
-        public async Task<User> GetUserByUsername(string username)
+        public async Task<User?> GetUserByUsername(string username)
         {
-            using (var connection = new NpgsqlConnection(connectionString))
+            using (var connection = DBConnectionManager.Instance.CreateConnection())
             {
                 await connection.OpenAsync();
                 using (var cmd = new NpgsqlCommand("SELECT Username, Name, Bio, Image, Elo FROM Users WHERE Username = @Username", connection))
@@ -117,6 +116,7 @@ namespace SportsExerciseBattle.DataAccessLayer
                             {
                                 Username = reader.GetString(reader.GetOrdinal("Username")),
                                 Name = reader.GetString(reader.GetOrdinal("Name")),
+                                Password = reader.GetString(reader.GetOrdinal("Password")),
                                 Bio = reader.IsDBNull(reader.GetOrdinal("Bio")) ? null : reader.GetString(reader.GetOrdinal("Bio")),
                                 Image = reader.IsDBNull(reader.GetOrdinal("Image")) ? null : reader.GetString(reader.GetOrdinal("Image")),
                                 Elo = reader.GetInt32(reader.GetOrdinal("Elo"))
@@ -130,18 +130,53 @@ namespace SportsExerciseBattle.DataAccessLayer
 
         public async Task<UserStats> GetUserStats(string username)
         {
-            // Implement fetching stats for a single user
-            // Placeholder for actual database interaction
-            return new UserStats { Username = username, TotalPushUps = 150, Elo = 1200 };
+            using (var connection = DBConnectionManager.Instance.CreateConnection())
+            {
+                await connection.OpenAsync();
+                using (var cmd = new NpgsqlCommand("SELECT TotalPushUps, Elo FROM UserStats WHERE Username = @Username", connection))
+                {
+                    cmd.Parameters.AddWithValue("Username", username);
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            return new UserStats
+                            {
+                                Username = username,
+                                TotalPushUps = reader.GetInt32(0),
+                                Elo = reader.GetInt32(1)
+                            };
+                        }
+                    }
+                }
+            }
+            return new UserStats { Username = username, TotalPushUps = 0, Elo = 1200 }; // Default stats if none found
         }
 
         public async Task<List<ScoreboardEntry>> GetScoreboardData()
         {
-            // Implement fetching data for the scoreboard
-            // Placeholder for actual database interaction
-            return new List<ScoreboardEntry> {
-                new ScoreboardEntry { Username = "JohnDoe", TotalPushUps = 150, Elo = 1200 }
-            };
+            var entries = new List<ScoreboardEntry>();
+            using (var connection = DBConnectionManager.Instance.CreateConnection())
+            {
+                await connection.OpenAsync();
+                using (var cmd = new NpgsqlCommand("SELECT Username, TotalPushUps, Elo FROM Scoreboard ORDER BY Elo DESC", connection))
+                {
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            entries.Add(new ScoreboardEntry
+                            {
+                                Username = reader.GetString(0),
+                                TotalPushUps = reader.GetInt32(1),
+                                Elo = reader.GetInt32(2)
+                            });
+                        }
+                    }
+                }
+            }
+            return entries;
         }
+
     }
 }
