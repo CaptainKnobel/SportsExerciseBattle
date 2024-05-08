@@ -1,47 +1,86 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SportsExerciseBattle.Utilities
 {
     public static class TokenService
     {
-        // Generates a simple token based on the username and current timestamp.
+        private static readonly TimeSpan TokenValidityDuration = TimeSpan.FromHours(10); // Token ist für 1 Stunde gültig
+
+        // Generiert einen einfachen Token basierend auf dem Benutzernamen und einem Ablaufdatum.
         public static string GenerateToken(string username)
         {
-            string tokenContent = $"{username}:{DateTime.UtcNow}";
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes(tokenContent));
+            var expires = DateTime.UtcNow.Add(TokenValidityDuration);
+            string tokenContent = $"{username}:{expires:o}";
+            var base64Token = Convert.ToBase64String(Encoding.UTF8.GetBytes(tokenContent));
+            return base64Token.Replace("+", "-").Replace("/", "_").Replace("=", ""); // URL-sichere Kodierung
         }
 
-        // Validates a token by decoding it and checking if it contains the correct username.
+        public static string CleanBase64String(string input)
+        {
+            var output = input.Trim();
+            output = output.Replace("-", "+").Replace("_", "/"); // Revert URL-sichere Kodierung
+
+            int mod4 = output.Length % 4;
+            if (mod4 > 0)
+            {
+                output += new string('=', 4 - mod4);
+            }
+
+            return output;
+        }
+
+        // Validiert einen Token, indem er dekodiert und überprüft wird, ob der Benutzername korrekt ist und der Token noch gültig ist.
         public static bool ValidateToken(string token, string username)
         {
             try
             {
+                token = CleanBase64String(token);
                 string decodedContent = Encoding.UTF8.GetString(Convert.FromBase64String(token));
-                string tokenUsername = decodedContent.Split(':')[0];
-                return tokenUsername == username;
+                var parts = decodedContent.Split(':');
+                if (parts.Length != 2)
+                    throw new FormatException("Token format is invalid.");
+
+                string tokenUsername = parts[0];
+                DateTime expires = DateTime.Parse(parts[1]);
+
+                return tokenUsername == username && expires > DateTime.UtcNow;
             }
-            catch
+            catch (FormatException ex)
             {
-                // If decoding fails, the token is invalid.
+                Console.WriteLine($"Token validation failed: {ex.Message}");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error during token validation: {ex.Message}");
                 return false;
             }
         }
-        // Extracts and returns the username from the token if valid, null otherwise.
+
+        // Extrahiert und gibt den Benutzernamen aus dem Token zurück, wenn gültig; null andernfalls.
         public static string ValidateTokenAndGetUsername(string token)
         {
-            string decodedContent = Encoding.UTF8.GetString(Convert.FromBase64String(token));
-            string[] parts = decodedContent.Split(':');
-            if (parts.Length > 0 && !string.IsNullOrEmpty(parts[0]))
+            try
             {
-                return parts[0];  // Returns the username part of the token
-            }
-            return ""; // Return empty if data is invalid
-        }
+                token = CleanBase64String(token);
+                string decodedContent = Encoding.UTF8.GetString(Convert.FromBase64String(token));
+                var parts = decodedContent.Split(':');
+                if (parts.Length != 2)
+                    return "";
 
+                string tokenUsername = parts[0];
+                DateTime expires = DateTime.Parse(parts[1]);
+
+                if (expires > DateTime.UtcNow)
+                    return tokenUsername;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error extracting username from token: {ex.Message}");
+            }
+            return "";
+        }
     }
 }
