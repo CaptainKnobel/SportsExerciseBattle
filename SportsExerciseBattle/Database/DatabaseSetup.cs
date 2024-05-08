@@ -25,6 +25,9 @@ namespace SportsExerciseBattle.Database
             // Create tables and setup initial structure
             await CreateTablesIfNotExistAsync();
 
+            // Insert initial users
+            await InsertInitialUsers();
+
             // Insert initial data if necessary
             await InsertInitialData();
         }
@@ -70,9 +73,9 @@ namespace SportsExerciseBattle.Database
                 DROP VIEW IF EXISTS get_stats;
                 DROP VIEW IF EXISTS get_score;
                 DROP VIEW IF EXISTS get_history;
-                DROP TABLE IF EXISTS history;
-                DROP TABLE IF EXISTS users;
-                DROP TABLE IF EXISTS tournaments;
+                DROP TABLE IF EXISTS history CASCADE;
+                DROP TABLE IF EXISTS users CASCADE;
+                DROP TABLE IF EXISTS tournaments CASCADE;
 
                 CREATE TABLE IF NOT EXISTS users (
                     user_id SERIAL PRIMARY KEY,
@@ -100,7 +103,7 @@ namespace SportsExerciseBattle.Database
                     tournament_started TIMESTAMP DEFAULT current_timestamp,
                     exercise_type VARCHAR(50) NOT NULL,
                     winner VARCHAR(200) NOT NULL,
-                    participant_count INTEGER NOT NULL
+                    participant_count INTEGER NOT NULL,
                     is_running BOOLEAN DEFAULT FALSE
                 );
 
@@ -119,8 +122,8 @@ namespace SportsExerciseBattle.Database
                 INNER JOIN history AS h ON u.user_id = h.fk_user_id
                 ORDER BY 2, 3 DESC;
                 
-                GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO seb_connection;
-                GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO seb_connection;
+                GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO seb_admin;
+                GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO seb_admin;
                 ";
 
                 using (var cmd = new NpgsqlCommand(sql, conn))
@@ -129,6 +132,24 @@ namespace SportsExerciseBattle.Database
                 }
             }
         }
+        private async Task InsertInitialUsers()
+        {
+            using (var conn = DBConnectionManager.Instance.CreateConnection())
+            {
+                await conn.OpenAsync();
+                var sql = @"
+                    INSERT INTO users (username, passwordHash, userELO, userToken, bio, image, profileName)
+                    VALUES 
+                    ('User1', 'hash1', 100, 'token1', 'bio1', 'image1', 'profile1'),
+                    ('User2', 'hash2', 100, 'token2', 'bio2', 'image2', 'profile2');
+                ";
+                using (var cmd = new NpgsqlCommand(sql, conn))
+                {
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
         private async Task InsertInitialData()
         {
             using (var conn = DBConnectionManager.Instance.CreateConnection())

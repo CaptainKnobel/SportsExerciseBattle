@@ -18,7 +18,7 @@ namespace SportsExerciseBattle.DataAccessLayer.Connection
 
         private DBConnectionManager()
         {
-            DefaultConnection = "Host=localhost;Port=5432;Database=seb_db;Username=seb_admin;Password=seb_password;Persist Security Info=True; Include Error Detail=True";
+            DefaultConnection = "Host=localhost;Port=5432;Database=seb_db;Username=postgres;Password=postgres;Persist Security Info=True; Include Error Detail=True";
         }
 
         public static DBConnectionManager Instance
